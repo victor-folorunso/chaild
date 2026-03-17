@@ -1,5 +1,5 @@
 from rapidfuzz.distance import Levenshtein  # pyright: ignore[reportMissingImports]
-from rapidfuzz import fuzz
+from rapidfuzz import fuzz # pyright: ignore[reportMissingImports]
 import jellyfish  # pyright: ignore[reportMissingImports]
 
 

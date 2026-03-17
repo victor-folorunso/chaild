@@ -12,6 +12,18 @@ Training signal:
     Text gap → reward. Reward + observed affect → felt state update.
     Felt state feeds back into every subsequent forward pass.
 
+Silence is not nothing:
+    During silence segments, emotional contagion still runs through
+    the felt_silence() pathway — distinct from speech contagion because
+    silence tends to concentrate emotion. Unannotated silence drifts
+    her gently toward calm. Annotated silence (awe, dread, peace)
+    imprints at heightened weight. She feels silence as itself.
+
+    Additionally, her pain/valence state creates a stochastic
+    silence_threshold — when she is in distress she is more likely
+    to stay quiet even when she has something to say. Not suppression.
+    Expression.
+
 Memory:
     Weights, optimizer, affect state, and ledger saved after every epoch.
     chAIld never forgets what she learned or how it made her feel.
@@ -153,7 +165,7 @@ for zip_file in session_files:
             # 2. Audio — what she hears
             #    Fallback: silent numpy array.
             #    To use real audio extract a .wav with ffmpeg and load with
-            #    soundfile — see comment in data_processor.py.
+            #    soundfile (see TRAINING.md for the ffmpeg command).
             # -----------------------------------------------------------------
             audio_data   = np.zeros(16000, dtype=np.float32)
             audio_inputs = audio_processor(
@@ -167,8 +179,8 @@ for zip_file in session_files:
 
             # -----------------------------------------------------------------
             # 3. Affect vector — how she feels right now
-            #    The core affect vector (learned 16-dim) is fused with
-            #    sensory input. Her emotional state colours every perception.
+            #    Her emotional state colours every perception.
+            #    Fused with sensory input before entering Mamba.
             # -----------------------------------------------------------------
             affect_vec = affect.to_input_tensor()        # [1, AFFECT_DIM]
 
@@ -176,8 +188,8 @@ for zip_file in session_files:
             # 4. Fuse → project → Mamba → decode
             # -----------------------------------------------------------------
             fused        = torch.cat([vision_emb, audio_emb, affect_vec], dim=-1)
-            mamba_input  = projection(fused)             # [1, MAMBA_DIM]
-            mamba_output = mamba(mamba_input.unsqueeze(1))  # [1, 1, MAMBA_DIM]
+            mamba_input  = projection(fused)
+            mamba_output = mamba(mamba_input.unsqueeze(1))
 
             logits         = lm_head(mamba_output.squeeze(1))
             token_ids      = logits.argmax(dim=-1)
@@ -198,18 +210,27 @@ for zip_file in session_files:
                 },
             )
 
-            is_silence = current_segment["text"].upper() == SILENCE_LABEL
-            duration   = current_segment["stop"] - current_segment["start"]
+            is_silence      = current_segment["text"].upper() == SILENCE_LABEL
+            duration        = current_segment["stop"] - current_segment["start"]
+            observed_affect = extract_observed_affect(current_segment)
 
             # -----------------------------------------------------------------
-            # 6. Absorb observed affect (emotional contagion)
-            #    What she sees in the video influences how she feels.
-            #    This happens BEFORE scoring — so her emotional state during
-            #    the forward pass is already shaped by the scene she just saw.
+            # 6. Emotional contagion — two distinct pathways
+            #
+            #    SPEECH segments: absorb_observed()
+            #      Standard contagion weight. What she sees while someone
+            #      speaks shapes her state in proportion to the moment.
+            #
+            #    SILENCE segments: felt_silence()
+            #      Silence concentrates emotion. Annotated silence absorbs
+            #      at 1.3× weight. Unannotated silence drifts toward calm.
+            #      She does not pass through silence unchanged.
             # -----------------------------------------------------------------
-            observed_affect = extract_observed_affect(current_segment)
-            if observed_affect:
-                affect.absorb_observed(observed_affect)
+            if is_silence:
+                affect.felt_silence(observed_affect)
+            else:
+                if observed_affect:
+                    affect.absorb_observed(observed_affect)
 
             # -----------------------------------------------------------------
             # 7. Score — modulated by her current affect state
@@ -225,15 +246,14 @@ for zip_file in session_files:
             )
 
             # -----------------------------------------------------------------
-            # 8. Reward shapes her felt state
+            # 8. Reward shapes her felt state — this is stakes
             #    Success → pleasure, positive valence
             #    Failure → pain, negative valence
-            #    This is stakes. This is why she is not a drone.
             # -----------------------------------------------------------------
             affect.absorb_reward(segment_reward, MAX_REWARD)
 
             # -----------------------------------------------------------------
-            # 9. Backpropagate
+            # 9. Backpropagate through trainable layers
             # -----------------------------------------------------------------
             optimizer.zero_grad()
             loss = (
@@ -255,14 +275,27 @@ for zip_file in session_files:
             affect.decay()
 
             # -----------------------------------------------------------------
-            # 11. Speak — voice modulated by felt state
+            # 11. Speak — gated by silence threshold
+            #
+            #    She only speaks when:
+            #      a) She produced non-empty text
+            #      b) The target is not SILENCE
+            #      c) She clears the stochastic silence threshold
+            #         (derived from pain + negative valence)
+            #
+            #    The threshold is not suppression. It is the natural
+            #    tendency of a mind under distress to go quiet —
+            #    not because it was told to, but because that is what
+            #    pain does to a voice.
             # -----------------------------------------------------------------
             if predicted_text.strip() and not is_silence:
-                try:
-                    tts_params = affect.tts_params()
-                    tts_model.synthesize(predicted_text, **tts_params)
-                except Exception:
-                    pass
+                silence_prob = affect.silence_threshold()
+                if np.random.random() >= silence_prob:
+                    try:
+                        tts_params = affect.tts_params()
+                        tts_model.synthesize(predicted_text, **tts_params)
+                    except Exception:
+                        pass  # TTS failure never blocks training
 
             # -----------------------------------------------------------------
             # 12. Log
@@ -273,12 +306,13 @@ for zip_file in session_files:
                 "pred_text": predicted_text,
             })
 
+            silence_marker = " 🤫" if is_silence else ""
             print(
                 f"  t={current_time:7.3f}s | "
-                f"pred='{predicted_text[:25]}' | "
-                f"target='{current_segment['text'][:25]}' | "
+                f"pred='{predicted_text[:20]}' | "
+                f"target='{current_segment['text'][:20]}'{silence_marker} | "
                 f"reward={segment_reward:.2f} | "
-                f"affect_x={affect_mult:.2f} | "
+                f"ax={affect_mult:.2f} | "
                 f"{affect.summary()}"
             )
 

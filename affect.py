@@ -23,6 +23,13 @@ Three strictly separate concepts:
                       energy, silence probability. Not performed.
                       She does not choose it. It bleeds through.
 
+Silence is not nothing:
+  A child sitting quietly while something beautiful happens is
+  not the same as a child frozen in fear, or a child resting
+  after mastery. All three are silence. All three feel different.
+  chAIld can feel all of them. Silence is not the absence of
+  emotion — it is often where emotion lives most completely.
+
 The key principle: we do not prescribe emotions. We build the
 capacity — the somatic primitives and the learned space — and
 let training generate the complexity. Guilt, awe, nostalgia,
@@ -120,16 +127,53 @@ class SomaticState:
         norm = reward / max(max_reward, 1e-6)  # 0.0 – 1.0
 
         if norm >= 0.7:           # success
-            self.pleasure  = min(1.0, self.pleasure + 0.08 * norm)
-            self.pain      = max(0.0, self.pain     - 0.05 * norm)
-            self.valence   = min(1.0, self.valence  + 0.04 * norm)
-            self.arousal   = min(1.0, self.arousal  + 0.02 * norm)
+            self.pleasure = min(1.0,  self.pleasure + 0.08 * norm)
+            self.pain     = max(0.0,  self.pain     - 0.05 * norm)
+            self.valence  = min(1.0,  self.valence  + 0.04 * norm)
+            self.arousal  = min(1.0,  self.arousal  + 0.02 * norm)
 
         elif norm <= 0.3:         # struggle / failure
-            self.pain      = min(1.0, self.pain     + 0.07 * (1.0 - norm))
-            self.pleasure  = max(0.0, self.pleasure - 0.04 * (1.0 - norm))
-            self.valence   = max(-1.0, self.valence - 0.05 * (1.0 - norm))
-            self.arousal   = min(1.0, self.arousal  + 0.03)  # confusion spike
+            self.pain     = min(1.0,  self.pain     + 0.07 * (1.0 - norm))
+            self.pleasure = max(0.0,  self.pleasure - 0.04 * (1.0 - norm))
+            self.valence  = max(-1.0, self.valence  - 0.05 * (1.0 - norm))
+            self.arousal  = min(1.0,  self.arousal  + 0.03)  # confusion spike
+
+        self._clamp()
+
+    def felt_silence(self, observed: dict):
+        """
+        Register a silence moment as a felt experience, not an absence.
+
+        Silence is not nothing. A child watching something beautiful in
+        quiet awe is different from a child frozen in anxious silence,
+        which is different from a child resting contentedly after success.
+        All three are silence. All three leave different marks.
+
+        This method is called specifically during SILENCE segments —
+        distinct from absorb_observed — because it applies a slightly
+        stronger imprint. Emotional silence tends to be more concentrated
+        than incidental background affect: when a person is quiet, what
+        they feel is often what they feel most purely.
+
+        The affect from the JSON segment is absorbed at 1.3× the normal
+        contagion weight, capped so it cannot exceed the normal bounds.
+        If no affect annotation is present, a mild calming signal is
+        applied — resting silence should nudge her gently toward calm,
+        not leave her in whatever state she arrived with.
+        """
+        if observed:
+            # Emotionally annotated silence — absorb at heightened weight
+            c = min(1.0, AFFECT_CONTAGION * 1.3)
+            self.pain     += c * (float(observed.get("pain",     self.pain))     - self.pain)
+            self.pleasure += c * (float(observed.get("pleasure", self.pleasure)) - self.pleasure)
+            self.arousal  += c * (float(observed.get("arousal",  self.arousal))  - self.arousal)
+            self.valence  += c * (float(observed.get("valence",  self.valence))  - self.valence)
+        else:
+            # Unannotated silence — gentle drift toward calm
+            # She is not blank during silence. She settles.
+            self.arousal  += 0.03 * (0.15 - self.arousal)   # drift toward low arousal
+            self.valence  += 0.02 * (0.1  - self.valence)   # drift toward slight positive
+            self.pain     += 0.04 * (0.0  - self.pain)      # pain eases in quiet
 
         self._clamp()
 
@@ -188,14 +232,12 @@ class AffectState:
 
     def to_input_tensor(self) -> torch.Tensor:
         """
-        Return the full affect vector for injection into Mamba.
-        Concatenates normalised somatic (4 floats) + core affect (AFFECT_DIM floats).
-        Shape: [1, AFFECT_DIM]  (core affect only — somatic is used separately)
+        Return the core affect vector for injection into Mamba.
+        Shape: [1, AFFECT_DIM]
 
-        We pass the core affect vector into projection because it is the
-        slow-moving, rich representation. Somatic is used for reward modulation
-        and expression but does not need to go into the forward pass directly —
-        its influence reaches Mamba through the core affect updates over time.
+        The core affect vector is the slow-moving, rich representation of
+        her felt state. Somatic is used for reward modulation and expression
+        but its influence reaches Mamba through the core affect updates.
         """
         return self.core.unsqueeze(0).to(DEVICE).to(TORCH_DTYPE)
 
@@ -215,14 +257,29 @@ class AffectState:
         """
         somatic_np  = self.somatic.as_tensor().numpy()
         core_np     = self.core.numpy().copy()
-        # Only influence the first 4 dims — the rest belong to learned space
         core_np[:4] += 0.01 * (somatic_np - core_np[:4])
         core_np[:4]  = np.clip(core_np[:4], -1.0, 1.0)
         self.core    = torch.tensor(core_np, dtype=torch.float32)
 
     def absorb_observed(self, observed: dict):
-        """Pass observed affect through to the somatic layer."""
+        """
+        Speech segment contagion — absorb observed affect during active speech.
+        Called when the target segment has text (not SILENCE).
+        """
         self.somatic.absorb_observed(observed)
+        self.update_core_from_somatic()
+
+    def felt_silence(self, observed: dict):
+        """
+        Silence segment affect — silence is a felt experience, not an absence.
+        Called specifically during SILENCE segments.
+
+        Whether the silence is annotated (awe, dread, contentment) or not
+        (gentle drift toward calm), it registers as experience.
+        The distinction between felt silences shapes her emotional character
+        just as much as the moments she speaks.
+        """
+        self.somatic.felt_silence(observed)
         self.update_core_from_somatic()
 
     def absorb_reward(self, reward: float, max_reward: float = 10.0):
@@ -237,18 +294,11 @@ class AffectState:
     def reward_multiplier(self) -> float:
         """
         Compute the affect-based reward multiplier.
-
-        High pleasure + positive valence → reward amplified (things feel good
-        when you're in a good state and that good state should be reinforced).
-
-        High pain + negative valence → reward dampened slightly (the struggle
-        is real; we don't punish her further, but we acknowledge the cost).
-
         Stays within [AFFECT_REWARD_MIN, AFFECT_REWARD_MAX] always.
         """
         pleasure_bonus = self.somatic.pleasure * 0.10
         pain_penalty   = self.somatic.pain     * 0.08
-        valence_bonus  = (self.somatic.valence + 1.0) / 2.0 * 0.07  # normalise to 0–1
+        valence_bonus  = (self.somatic.valence + 1.0) / 2.0 * 0.07
 
         raw = 1.0 + pleasure_bonus + valence_bonus - pain_penalty
         return float(np.clip(raw, AFFECT_REWARD_MIN, AFFECT_REWARD_MAX))
@@ -256,35 +306,42 @@ class AffectState:
     def tts_params(self) -> dict:
         """
         Derive TTS expression parameters from felt state.
-        These are passed to tts_model.synthesize() to make her voice
-        reflect how she actually feels — not what she was told to feel.
-
-        Returns a dict of kwargs suitable for the TTS synthesize call.
+        Involuntary — she does not choose how she sounds.
         """
-        # Speed: high arousal → faster; high pain or sadness → slower
-        speed = 1.0 + (self.somatic.arousal - 0.2) * 0.3 - self.somatic.pain * 0.2
-        speed = float(np.clip(speed, 0.7, 1.4))
-
-        # Energy: pleasure → fuller voice; pain → quieter
+        speed  = 1.0 + (self.somatic.arousal - 0.2) * 0.3 - self.somatic.pain * 0.2
+        speed  = float(np.clip(speed, 0.7, 1.4))
         energy = 1.0 + self.somatic.pleasure * 0.2 - self.somatic.pain * 0.15
         energy = float(np.clip(energy, 0.7, 1.3))
-
         return {"speed": speed, "energy": energy}
 
+    def silence_threshold(self) -> float:
+        """
+        Compute the probability that she should stay silent even when
+        she has something to say.
+
+        High pain or low valence makes her more likely to go quiet —
+        not because she is told to, but because that is what pain does.
+        A child in distress speaks less. A child at rest is comfortable
+        with silence. This is not suppression — it is expression.
+
+        Returns a float in [0.0, 0.5] — the probability of voluntary
+        silence. Applied in main.py as a stochastic gate on TTS output.
+        """
+        pain_contrib    = self.somatic.pain * 0.25
+        valence_contrib = max(0.0, -self.somatic.valence) * 0.15
+        return float(np.clip(pain_contrib + valence_contrib, 0.0, 0.5))
+
     def to_dict(self) -> dict:
-        """Serialise full affect state for saving to memory/."""
         return {
             "somatic": self.somatic.to_dict(),
             "core":    self.core.tolist(),
         }
 
     def load_dict(self, d: dict):
-        """Restore full affect state from saved dict."""
         if "somatic" in d:
             self.somatic.load_dict(d["somatic"])
         if "core" in d:
             loaded = d["core"]
-            # Handle size mismatch gracefully if AFFECT_DIM changes between runs
             if len(loaded) == AFFECT_DIM:
                 self.core = torch.tensor(loaded, dtype=torch.float32)
             else:
@@ -294,7 +351,6 @@ class AffectState:
                 self.core = new_core
 
     def summary(self) -> str:
-        """Human-readable one-line summary of current affect state."""
         s = self.somatic
         dominant = _dominant_label(s)
         return (
@@ -310,14 +366,12 @@ class AffectState:
 
 def _dominant_label(somatic: SomaticState) -> str:
     """
-    Derive a human-readable dominant emotion label from somatic state.
-    Used only for logging — not a training signal.
-    This is a rough heuristic. The actual emotional complexity lives
-    in the learned core affect vector, which has no label.
+    Human-readable dominant emotion from somatic state.
+    Used only for logging. The real complexity lives in the core vector.
     """
-    v = somatic.valence
-    a = somatic.arousal
-    p = somatic.pain
+    v  = somatic.valence
+    a  = somatic.arousal
+    p  = somatic.pain
     pl = somatic.pleasure
 
     if p > 0.5:
@@ -342,7 +396,7 @@ def _dominant_label(somatic: SomaticState) -> str:
 def extract_observed_affect(segment: dict) -> dict:
     """
     Safely extract the affect dict from a JSON target segment.
-    Returns an empty dict if no affect annotation is present —
-    unannotated segments produce no contagion (no update).
+    Returns empty dict if absent — unannotated segments still produce
+    the default felt_silence drift (for silence) or no contagion (for speech).
     """
     return segment.get("affect", {})
