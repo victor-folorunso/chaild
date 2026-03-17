@@ -1,8 +1,8 @@
 import torch
-from accelerate import Accelerator
-from transformers import Qwen3VLForConditionalGeneration, AutoProcessor, AutoModelForSpeechSeq2Seq, WhisperProcessor, AutoTokenizer
-from mamba_ssm import Mamba
-from qwen3_tts import Qwen3TTS
+from accelerate import Accelerator # pyright: ignore[reportMissingImports]
+from transformers import Qwen3VLForConditionalGeneration, AutoProcessor, AutoModelForSpeechSeq2Seq, WhisperProcessor, AutoTokenizer # pyright: ignore[reportMissingImports]
+from mamba_ssm import Mamba # pyright: ignore[reportMissingImports]
+from qwen3_tts import Qwen3TTS # pyright: ignore[reportMissingImports]
 
 accelerator = Accelerator()
 device = accelerator.device

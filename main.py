@@ -6,12 +6,12 @@ from pathlib import Path
 training_folder = Path("training_data")
 for zip_file in sorted(training_folder.glob("*chaild.zip")):
     video_path, targets = load_session(zip_file)
-    cap = cv2.VideoCapture(video_path)
-    fps = cap.get(cv2.CAP_PROP_FPS)
-    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    cap = cv2.VideoCapture(video_path) # pyright: ignore[reportUndefinedVariable]
+    fps = cap.get(cv2.CAP_PROP_FPS) # pyright: ignore[reportUndefinedVariable]
+    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT)) # pyright: ignore[reportUndefinedVariable]
     
     for epoch in range(3):
-        cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+        cap.set(cv2.CAP_PROP_POS_FRAMES, 0) # pyright: ignore[reportUndefinedVariable]
         frame_idx = 0
         
         while frame_idx < total_frames:
@@ -41,7 +41,7 @@ for zip_file in sorted(training_folder.glob("*chaild.zip")):
             is_silence_target = True
             target = "SILENCE"
             
-            for entry in reply:
+            for entry in reply: # pyright: ignore[reportUndefinedVariable]
                 if entry["start"] <= current_time <= entry["stop"]:
                     is_silence_target = False
                     target = entry["text"]

@@ -1,6 +1,6 @@
 import zipfile
-import cv2
-import soundfile as sf
+import cv2 # pyright: ignore[reportMissingImports]
+import soundfile as sf # pyright: ignore[reportMissingImports]
 import torch
 import os
 import json
