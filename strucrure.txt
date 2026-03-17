@@ -1,0 +1,10 @@
+CHAILD
+    training_data
+        placeholder.chaild.zip
+            name.mp4
+            targets.json
+        placeholder2.chaild.zip
+            name.mp4
+            targets.json
+    data_processor.py
+    
