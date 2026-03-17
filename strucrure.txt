@@ -7,4 +7,7 @@ CHAILD
             name.mp4
             targets.json
     data_processor.py
-    
+    main.py
+    models.py
+    structure.txt
+
