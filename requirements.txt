@@ -1,0 +1,27 @@
+# chAIld — Python dependencies
+# Install with: pip install -r requirements.txt
+#
+# GPU note: install torch separately first with the correct CUDA version:
+#   https://pytorch.org/get-started/locally/
+
+# Core ML
+torch>=2.2.0
+transformers>=4.45.0
+mamba-ssm>=2.0.3
+
+# Vision / audio processing
+opencv-python>=4.9.0
+Pillow>=10.0.0
+soundfile>=0.12.1
+numpy>=1.26.0
+
+# Scoring
+rapidfuzz>=3.6.0
+jellyfish>=1.0.3
+
+# TTS (Qwen3-TTS — install from source or HuggingFace if not on PyPI)
+# pip install git+https://github.com/QwenLM/Qwen3-TTS.git
+# qwen3-tts
+
+# Utilities
+tqdm>=4.66.0
