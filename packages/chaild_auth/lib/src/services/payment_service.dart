@@ -1,9 +1,7 @@
-import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../chaild_auth_config.dart';
+import '../config/app_env.dart';
 import '../config/chaild_constants.dart';
-import '../models/chaild_subscription.dart';
 
 /// Handles initiating Flutterwave payment via browser.
 /// Flow:
@@ -17,8 +15,8 @@ class PaymentService {
   static final PaymentService instance = PaymentService._();
 
   static const Map<String, int> _planAmounts = {
-    ChailConstants.planMonthly: 2500,  // NGN — update to your real prices
-    ChailConstants.planYearly: 24000,
+    ChailConstants.planMonthly: ChailAppEnv.priceMonthlyNgn,
+    ChailConstants.planYearly: ChailAppEnv.priceYearlyNgn,
   };
 
   /// Initiates a Flutterwave payment by opening the browser.
@@ -33,8 +31,7 @@ class PaymentService {
 
     final txRef = ChailConstants.flutterwaveTxRef(userId);
     final amount = _planAmounts[plan] ?? _planAmounts[ChailConstants.planMonthly]!;
-    final publicKey = ChailAuth.flutterwavePublicKey;
-    if (publicKey == null) throw Exception('Flutterwave key not configured');
+    const publicKey = ChailAppEnv.flutterwavePublicKey;
 
     // Store pending tx_ref in Supabase so webhook can find the user
     await ChailAuth.client.from(ChailConstants.tableSubscriptions).upsert({

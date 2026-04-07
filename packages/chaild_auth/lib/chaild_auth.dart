@@ -24,6 +24,7 @@ library chaild_auth;
 export 'src/chaild_auth_config.dart';
 export 'src/config/chaild_theme.dart';
 export 'src/config/chaild_constants.dart';
+export 'src/config/app_env.dart';
 
 // ── Models ────────────────────────────────────────────────────────────────────
 export 'src/models/chaild_user.dart';

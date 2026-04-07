@@ -1,6 +1,6 @@
 import 'package:purchases_flutter/purchases_flutter.dart';
 import '../chaild_auth_config.dart';
-import '../config/chaild_constants.dart';
+import '../config/app_env.dart';
 import '../models/chaild_subscription.dart';
 
 class SubscriptionService {
@@ -17,7 +17,7 @@ class SubscriptionService {
       // ── RevenueCat check ────────────────────────────────────────────────
       final customerInfo = await Purchases.getCustomerInfo();
       final entitlement =
-          customerInfo.entitlements.active[ChailConstants.rcEntitlement];
+          customerInfo.entitlements.active[ChailAppEnv.rcEntitlement];
 
       if (entitlement != null) {
         return ChailSubscription(
