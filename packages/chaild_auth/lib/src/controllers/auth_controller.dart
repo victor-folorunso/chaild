@@ -4,6 +4,7 @@ import '../models/chaild_user.dart';
 import '../models/chaild_subscription.dart';
 import '../services/auth_service.dart';
 import '../services/subscription_service.dart';
+import '../services/two_factor_service.dart';
 
 // ── Auth State ────────────────────────────────────────────────────────────────
 
@@ -11,20 +12,32 @@ class AuthState {
   final bool isLoading;
   final ChailUser? user;
   final String? error;
+  /// Non-null when the user has signed in but 2FA challenge is required.
+  final String? pendingTwoFactorId;
 
   const AuthState({
     this.isLoading = false,
     this.user,
     this.error,
+    this.pendingTwoFactorId,
   });
 
   bool get isSignedIn => user != null;
+  bool get requiresTwoFactor => pendingTwoFactorId != null;
 
-  AuthState copyWith({bool? isLoading, ChailUser? user, String? error}) =>
+  AuthState copyWith({
+    bool? isLoading,
+    ChailUser? user,
+    String? error,
+    String? pendingTwoFactorId,
+    bool clearTwoFactor = false,
+  }) =>
       AuthState(
         isLoading: isLoading ?? this.isLoading,
         user: user ?? this.user,
         error: error,
+        pendingTwoFactorId:
+            clearTwoFactor ? null : (pendingTwoFactorId ?? this.pendingTwoFactorId),
       );
 }
 
@@ -71,10 +84,30 @@ class AuthController extends StateNotifier<AuthState> {
     try {
       final res = await AuthService.instance
           .signInWithEmail(email: email, password: password);
-      if (res.user != null) await _loadUser(res.user!.id);
+      if (res.user != null) {
+        // Check whether a verified 2FA factor exists — if so, require challenge.
+        final factorId = await TwoFactorService.instance.verifiedFactorId();
+        if (factorId != null) {
+          // Pause here; UI must route to TwoFactorChallengeScreen.
+          state = state.copyWith(
+            isLoading: false,
+            pendingTwoFactorId: factorId,
+          );
+        } else {
+          await _loadUser(res.user!.id);
+        }
+      }
     } catch (e) {
       state = state.copyWith(isLoading: false, error: _friendly(e));
     }
+  }
+
+  /// Call this after a successful 2FA challenge to complete sign-in.
+  Future<void> completeTwoFactor() async {
+    final userId = AuthService.instance.currentUserId;
+    if (userId == null) return;
+    state = state.copyWith(isLoading: true, clearTwoFactor: true);
+    await _loadUser(userId);
   }
 
   Future<void> signInWithApple() async {

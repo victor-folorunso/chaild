@@ -66,6 +66,9 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<!-- Biometric authentication -->
+	<key>NSFaceIDUsageDescription</key>
+	<string>Use Face ID to unlock the app quickly and securely.</string>
 	<!-- Deep link: catches chaild:// redirects after Flutterwave payment -->
 	<key>CFBundleURLTypes</key>
 	<array>

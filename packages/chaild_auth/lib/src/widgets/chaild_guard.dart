@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../chaild_auth_config.dart';
 import '../controllers/auth_controller.dart';
 import '../screens/chaild_auth_flow.dart';
 import '../screens/subscription_screen.dart';
@@ -74,6 +75,13 @@ class _ChailGuardState extends ConsumerState<ChailGuard> {
     }
 
     // ── All good → show the actual app ────────────────────────────────────
+    // ── ID verification scaffold check ────────────────────────────────────
+    if (ChailAuth.requiresIdVerification) {
+      // In future this will fetch the user's id_verified flag from Supabase
+      // and show a real KYC flow. For now: placeholder scaffold only.
+      // (Set requiresIdVerification: true in ChaildAuth.initialize() to activate.)
+    }
+
     return widget.child;
   }
 }

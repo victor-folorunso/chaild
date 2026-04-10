@@ -28,6 +28,10 @@ dependencies:
   # Secure token storage
   flutter_secure_storage: ^9.2.4
 
+  # Security
+  local_auth: ^2.3.0
+  qr_flutter: ^4.1.0
+
   # UI
   google_fonts: ^6.2.1
 

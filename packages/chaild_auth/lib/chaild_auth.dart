@@ -37,6 +37,8 @@ export 'src/controllers/auth_controller.dart';
 export 'src/services/auth_service.dart';
 export 'src/services/subscription_service.dart';
 export 'src/services/payment_service.dart';
+export 'src/services/biometric_service.dart';
+export 'src/services/two_factor_service.dart';
 
 // ── Screens (use directly for custom flows) ───────────────────────────────────
 export 'src/screens/chaild_auth_flow.dart';
@@ -45,8 +47,10 @@ export 'src/screens/signup_screen.dart';
 export 'src/screens/forgot_password_screen.dart';
 export 'src/screens/subscription_screen.dart';
 export 'src/screens/account_screen.dart';
+export 'src/screens/two_factor_screen.dart';
 
 // ── Widgets ───────────────────────────────────────────────────────────────────
 export 'src/widgets/chaild_button.dart';
 export 'src/widgets/chaild_text_field.dart';
 export 'src/widgets/chaild_guard.dart';
+export 'src/widgets/chaild_app_lock.dart';

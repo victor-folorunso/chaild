@@ -3,15 +3,55 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../config/chaild_constants.dart';
 import '../config/chaild_theme.dart';
 import '../controllers/auth_controller.dart';
+import '../services/biometric_service.dart';
+import '../services/two_factor_service.dart';
 import '../widgets/chaild_button.dart';
+import 'two_factor_screen.dart';
 
-class AccountScreen extends ConsumerWidget {
+class AccountScreen extends ConsumerStatefulWidget {
   final VoidCallback? onSignedOut;
 
   const AccountScreen({super.key, this.onSignedOut});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AccountScreen> createState() => _AccountScreenState();
+}
+
+class _AccountScreenState extends ConsumerState<AccountScreen> {
+  bool _biometricAvailable = false;
+  bool _biometricEnabled = false;
+  bool _twoFactorEnrolled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBiometricState();
+    _loadTwoFactorState();
+  }
+
+  Future<void> _loadBiometricState() async {
+    final available = await BiometricService.instance.isAvailable();
+    final enabled = await BiometricService.instance.isEnabled();
+    if (mounted) {
+      setState(() {
+        _biometricAvailable = available;
+        _biometricEnabled = enabled;
+      });
+    }
+  }
+
+  Future<void> _loadTwoFactorState() async {
+    final enrolled = await TwoFactorService.instance.isEnrolled();
+    if (mounted) setState(() => _twoFactorEnrolled = enrolled);
+  }
+
+  Future<void> _toggleBiometric(bool value) async {
+    await BiometricService.instance.setEnabled(value);
+    setState(() => _biometricEnabled = value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final auth = ref.watch(authControllerProvider);
     final sub = ref.watch(subscriptionControllerProvider);
     final user = auth.user;
@@ -106,6 +146,70 @@ class AccountScreen extends ConsumerWidget {
 
             const SizedBox(height: 16),
 
+            // ── Security ───────────────────────────────────────────────────
+            if (_biometricAvailable) ...[
+              _SectionCard(
+                children: [
+                  ListTile(
+                    leading: Icon(
+                      Icons.fingerprint,
+                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                      size: 20,
+                    ),
+                    title: Text('Biometric Unlock',
+                        style: Theme.of(context).textTheme.bodyMedium),
+                    trailing: Switch(
+                      value: _biometricEnabled,
+                      onChanged: _toggleBiometric,
+                    ),
+                  ),
+                  _Row(
+                    icon: Icons.qr_code_scanner_rounded,
+                    label: _twoFactorEnrolled
+                        ? 'Two-Factor Auth (enabled)'
+                        : 'Set Up Two-Factor Auth',
+                    iconColor: _twoFactorEnrolled ? ChailColors.success : null,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => TwoFactorSetupScreen(
+                          onDone: () {
+                            Navigator.pop(context);
+                            _loadTwoFactorState();
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+            ] else ...[
+              _SectionCard(
+                children: [
+                  _Row(
+                    icon: Icons.qr_code_scanner_rounded,
+                    label: _twoFactorEnrolled
+                        ? 'Two-Factor Auth (enabled)'
+                        : 'Set Up Two-Factor Auth',
+                    iconColor: _twoFactorEnrolled ? ChailColors.success : null,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => TwoFactorSetupScreen(
+                          onDone: () {
+                            Navigator.pop(context);
+                            _loadTwoFactorState();
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+            ],
+
             // ── Account Actions ────────────────────────────────────────────
             _SectionCard(
               children: [
@@ -114,7 +218,7 @@ class AccountScreen extends ConsumerWidget {
                   label: 'Sign Out',
                   onTap: () async {
                     await ref.read(authControllerProvider.notifier).signOut();
-                    onSignedOut?.call();
+                    widget.onSignedOut?.call();
                   },
                 ),
               ],
@@ -130,7 +234,7 @@ class AccountScreen extends ConsumerWidget {
                   iconColor: ChailColors.error,
                   label: 'Delete Account',
                   labelColor: ChailColors.error,
-                  onTap: () => _confirmDelete(context, ref),
+                  onTap: () => _confirmDelete(context),
                 ),
               ],
             ),
@@ -154,7 +258,7 @@ class AccountScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
+  Future<void> _confirmDelete(BuildContext context) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(

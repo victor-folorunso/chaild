@@ -141,6 +141,8 @@ class AuthService {
 
   Stream<AuthState> get authStateChanges => _client.auth.onAuthStateChange;
 
+  String? get currentUserId => _client.auth.currentUser?.id;
+
   // ── Private ───────────────────────────────────────────────────────────────
 
   /// Stamps the partner key on a new user's profile.

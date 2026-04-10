@@ -37,11 +37,15 @@ class ChailAuth {
   static String? _appName;
   static Color? _accentColor;
   static bool _initialized = false;
+  static Duration? _appLockTimeout;
+  static bool _requiresIdVerification = false;
 
   static String? get partnerKey => _partnerKey;
   static String? get appName => _appName;
   static Color? get accentColor => _accentColor;
   static bool get isInitialized => _initialized;
+  static Duration? get appLockTimeout => _appLockTimeout;
+  static bool get requiresIdVerification => _requiresIdVerification;
 
   /// Initialize ChailAuth. Call once in main() before runApp().
   ///
@@ -62,6 +66,8 @@ class ChailAuth {
     required String revenueCatApiKey,
     String appName = 'App',
     Color? accentColor,
+    Duration? appLockTimeout,
+    bool requiresIdVerification = false,
   }) async {
     // Supabase — uses Chaild's own credentials baked into the SDK
     await Supabase.initialize(
@@ -77,6 +83,8 @@ class ChailAuth {
     _partnerKey = partnerKey;
     _appName = appName;
     _accentColor = accentColor;
+    _appLockTimeout = appLockTimeout;
+    _requiresIdVerification = requiresIdVerification;
     _initialized = true;
   }
 
