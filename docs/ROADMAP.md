@@ -118,17 +118,30 @@ Currently the only payment path is Flutterwave. Both must work.
 
 ### 3.1: Add Native IAP Purchase Flow in SubscriptionScreen
 
+The payment options shown depend on platform and region. Follow this matrix:
+
+- Android (all regions): Show Flutterwave prominently as the primary option.
+  Show Google Play Billing as a secondary option. Do not restrict Flutterwave
+  on Android. Google Play policy permits alternative billing and Nigerian users
+  strongly prefer Flutterwave.
+- iOS, US storefront: Show native IAP (App Store) as the primary option. Show
+  Flutterwave / Apple Pay as a secondary option (permitted for US only).
+- iOS, all other regions: Show native IAP (App Store) only. Do not show any
+  external payment option. Apple policy prohibits external checkouts for digital
+  subscriptions outside the US.
+
 Tasks:
-- Add a second payment option in `subscription_screen.dart` for native IAP
-  (Apple In-App Purchase on iOS, Google Play Billing on Android).
-- Show Flutterwave payment for all users as it works everywhere.
-- Show native IAP as an alternative option labelled clearly by platform.
+- Detect platform at runtime. For iOS, also detect storefront using
+  `Storefront.current.countryCode` from StoreKit to determine if the user
+  is on the US storefront.
+- Render `subscription_screen.dart` conditionally based on the matrix above.
 - Wire the native IAP button to call `Purchases.purchasePackage()` from
   the RevenueCat SDK.
 - On successful purchase RevenueCat automatically grants the entitlement.
   Call `SubscriptionService.refreshAfterPayment()` after purchase completes.
 - Handle `PurchasesErrorCode.purchaseCancelledError` silently (user backed out).
 - Handle other errors with a user-friendly message.
+- See `docs/COMPLIANCE.md` for the full compliance rationale behind this matrix.
 
 ### 3.2: RevenueCat Product Setup
 
@@ -504,11 +517,11 @@ Tasks:
 
 Tasks:
 - The subscription screen currently only shows Flutterwave.
-- Add native IAP as a second option after the Flutterwave button.
-- Label them clearly: "Pay with card / bank transfer" and "Pay with
-  App Store / Play Store".
-- Show only the relevant native option per platform (App Store on iOS,
-  Play Store on Android).
+- Implement the platform-aware payment display defined in Section 3.1.
+- On Android: Flutterwave first, Google Play Billing second.
+- On iOS (US): App Store IAP first, Flutterwave / Apple Pay second.
+- On iOS (non-US): App Store IAP only, no other options.
+- Label buttons clearly so the user always understands what they are tapping.
 
 ### 10.3: ChaildGuard Subscription Check
 

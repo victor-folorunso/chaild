@@ -72,3 +72,5 @@ That is everything required. The rest is optional customisation.
 - [Security](SECURITY.md): biometrics, 2FA, app lock
 - [Revenue and Referrals](REVENUE.md): how you earn, usage tracking, payouts
 - [Building the App](BUILDING.md): platform config, build commands
+- [Partner Agreement](PARTNER_AGREEMENT.md): terms for publishing under Chaild
+- [Payment Compliance](COMPLIANCE.md): platform payment rules and decisions (internal)

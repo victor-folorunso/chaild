@@ -63,14 +63,20 @@ sub.source      // 'revenuecat' or 'supabase'
 
 ## Payment Methods
 
-Users can pay via:
+What the user sees depends on their platform:
 
-- Card, bank transfer, or mobile money through Flutterwave (global coverage)
-- Apple In-App Purchase on iOS (billed through the App Store)
-- Google Play Billing on Android (billed through the Play Store)
+**On Android:** Users can pay via Flutterwave (card, bank transfer, USSD,
+mobile money) or Google Play Billing. Flutterwave is shown prominently as it
+covers the widest range of payment options for users globally.
 
-The correct options appear automatically based on the platform and region. You
-do not control which payment method the user picks.
+**On iOS (US App Store):** Users can pay via native App Store In-App Purchase
+or Flutterwave / Apple Pay.
+
+**On iOS (all other regions):** Users can pay via native App Store In-App
+Purchase only.
+
+You do not control which payment methods are shown. Chaild determines this
+based on platform and region.
 
 ---
 
@@ -81,8 +87,8 @@ App Store and Google Play. This is what makes the single-subscription model
 possible and keeps everything compliant with App Store and Google Play policies.
 
 When you register through portal.chaild.app and submit your app, Chaild
-handles publication, App Store and Play Store submissions, and all billing
-configuration. You retain full ownership of your code.
+handles publication, store submissions, and all billing configuration. You
+retain full ownership of your code.
 
 RevenueCat is used internally by Chaild to manage native IAP subscriptions.
 You do not need a RevenueCat account. You do not pass any RevenueCat keys.
