@@ -33,6 +33,8 @@ dependencies:
   cupertino_icons: ^1.0.8
   chaild_auth:
     path: packages/chaild_auth
+  chaild_storage:
+    path: packages/chaild_storage
 
 dev_dependencies:
   flutter_test:

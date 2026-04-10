@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:chaild_auth/chaild_auth.dart';
+import 'package:chaild_storage/chaild_storage.dart';
 
 /// ─────────────────────────────────────────────────────────────────────────────
 /// TEST RUNNER for the chaild_auth package.
@@ -22,6 +23,8 @@ Future<void> main() async {
     revenueCatApiKey: _revenueCatApiKey,
     appName: 'Chaild',
   );
+
+  await ChaildStorage.initialize(namespace: 'chaild_test');
 
   runApp(const ChailTestApp());
 }

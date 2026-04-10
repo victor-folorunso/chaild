@@ -1,0 +1,22 @@
+name: chaild_storage
+description: "ChaildStorage — local key-value and collection storage for Flutter apps using the Chaild SDK."
+version: 0.0.1
+publish_to: 'none'
+
+environment:
+  sdk: ^3.6.0
+  flutter: ">=3.27.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  shared_preferences: ^2.3.2
+  flutter_secure_storage: ^9.2.4
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: false
