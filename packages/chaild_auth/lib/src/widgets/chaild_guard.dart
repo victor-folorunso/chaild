@@ -77,9 +77,33 @@ class _ChailGuardState extends ConsumerState<ChailGuard> {
     // ── All good → show the actual app ────────────────────────────────────
     // ── ID verification scaffold check ────────────────────────────────────
     if (ChailAuth.requiresIdVerification) {
-      // In future this will fetch the user's id_verified flag from Supabase
-      // and show a real KYC flow. For now: placeholder scaffold only.
-      // (Set requiresIdVerification: true in ChaildAuth.initialize() to activate.)
+      // Placeholder: when a KYC provider is integrated, replace this screen
+      // with the real verification flow. The flag + gating logic are in place.
+      return const Scaffold(
+        body: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: EdgeInsets.all(32),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.verified_user_outlined, size: 64, color: Colors.grey),
+                  SizedBox(height: 16),
+                  Text('Identity Verification Required',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+                  SizedBox(height: 8),
+                  Text(
+                    'This app requires identity verification. '
+                    'This feature will be available soon.',
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
     }
 
     return widget.child;

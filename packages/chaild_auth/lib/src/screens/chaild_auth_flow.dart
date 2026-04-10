@@ -53,15 +53,25 @@ class _AuthFlowRootState extends ConsumerState<_AuthFlowRoot> {
   @override
   void initState() {
     super.initState();
-    // If already signed in from a previous session, fire immediately
+    // Handle session already active on widget mount (e.g. app resumed).
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final user = ref.read(authControllerProvider).user;
-      if (user != null) widget.onAuthenticated(user);
+      final state = ref.read(authControllerProvider);
+      if (state.user != null && !state.requiresTwoFactor) {
+        widget.onAuthenticated(state.user!);
+      }
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    // Fire onAuthenticated whenever user transitions from null → non-null
+    // (covers normal sign-in AND 2FA completion).
+    ref.listen<AuthState>(authControllerProvider, (prev, next) {
+      if (prev?.user == null && next.user != null && !next.requiresTwoFactor) {
+        widget.onAuthenticated(next.user!);
+      }
+    });
+
     final authState = ref.watch(authControllerProvider);
 
     // 2FA challenge pending — show code entry before completing sign-in

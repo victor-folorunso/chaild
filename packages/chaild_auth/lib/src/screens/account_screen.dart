@@ -193,6 +193,15 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                     ),
                   ),
                 ),
+                if (ChailAuth.appLockTimeout != null)
+                  _Row(
+                    icon: Icons.timer_outlined,
+                    label: 'App Lock Timeout',
+                    trailing: Text(
+                      _formatTimeout(ChailAuth.appLockTimeout!),
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  ),
               ],
             ),
 
@@ -308,6 +317,12 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
 
   String _formatDate(DateTime dt) =>
       '${dt.day}/${dt.month}/${dt.year}';
+
+  String _formatTimeout(Duration d) {
+    if (d.inMinutes < 1) return '${d.inSeconds}s';
+    if (d.inHours < 1) return '${d.inMinutes}m';
+    return '${d.inHours}h';
+  }
 }
 
 // ── Small internal widgets ────────────────────────────────────────────────────

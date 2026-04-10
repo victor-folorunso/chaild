@@ -38,7 +38,7 @@ serve(async (req: Request) => {
     const { error } = await supabase
       .from('payouts')
       .update({ status: 'completed' })
-      .eq('flutterwave_reference', flutterwaveReference)
+      .eq('transfer_reference', flutterwaveReference)
 
     if (error) {
       console.error('payout-webhook: failed to mark completed', error)
@@ -49,7 +49,7 @@ serve(async (req: Request) => {
     const { error } = await supabase
       .from('payouts')
       .update({ status: 'failed', failure_reason: reason })
-      .eq('flutterwave_reference', flutterwaveReference)
+      .eq('transfer_reference', flutterwaveReference)
 
     if (error) {
       console.error('payout-webhook: failed to mark failed', error)
