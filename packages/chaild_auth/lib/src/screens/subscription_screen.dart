@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:purchases_flutter/purchases_flutter.dart';
 import '../chaild_auth_config.dart';
 import '../config/chaild_constants.dart';
 import '../config/chaild_theme.dart';
@@ -8,6 +10,37 @@ import '../controllers/auth_controller.dart';
 import '../services/payment_service.dart';
 import '../services/subscription_service.dart';
 import '../widgets/chaild_button.dart';
+
+// ─── Platform / storefront detection ────────────────────────────────────────
+
+enum _PaymentMode {
+  /// iOS non-US: App Store IAP only.
+  iapOnly,
+
+  /// iOS US: App Store IAP primary, Flutterwave secondary.
+  iapPrimary,
+
+  /// Android all: Flutterwave primary, Google Play Billing secondary.
+  flutterwavePrimary,
+}
+
+Future<_PaymentMode> _detectPaymentMode() async {
+  if (Platform.isIOS) {
+    try {
+      final storefront = await Purchases.currentStorefront;
+      if (storefront?.countryCode == 'USA') {
+        return _PaymentMode.iapPrimary;
+      }
+    } catch (_) {
+      // If storefront detection fails, default to safest IAP-only.
+    }
+    return _PaymentMode.iapOnly;
+  }
+  // Android (and any other platform)
+  return _PaymentMode.flutterwavePrimary;
+}
+
+// ─── Widget ─────────────────────────────────────────────────────────────────
 
 class SubscriptionScreen extends ConsumerStatefulWidget {
   final VoidCallback? onSubscribed;
@@ -23,8 +56,11 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
   bool _isLoading = false;
   String? _pendingTxRef;
   Timer? _pollTimer;
+  _PaymentMode? _paymentMode;
+  Offering? _offering;
 
-  static const _prices = {
+  // Flutterwave prices (fallback / Android primary)
+  static const _fwPrices = {
     ChailConstants.planMonthly: 2500,
     ChailConstants.planYearly: 24000,
   };
@@ -37,17 +73,85 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _init();
+  }
+
+  @override
   void dispose() {
     _pollTimer?.cancel();
     super.dispose();
   }
 
-  Future<void> _subscribe() async {
+  Future<void> _init() async {
+    setState(() => _isLoading = true);
+    try {
+      final mode = await _detectPaymentMode();
+      Offering? offering;
+      if (mode != _PaymentMode.flutterwavePrimary) {
+        // Pre-load RevenueCat offering for IAP flows.
+        try {
+          final offerings = await Purchases.getOfferings();
+          offering = offerings.current;
+        } catch (_) {
+          // Offering unavailable — IAP UI will show an error state.
+        }
+      }
+      if (mounted) {
+        setState(() {
+          _paymentMode = mode;
+          _offering = offering;
+          _isLoading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  // ─── IAP via RevenueCat ───────────────────────────────────────────────────
+
+  Package? get _selectedPackage {
+    if (_offering == null) return null;
+    return _selectedPlan == ChailConstants.planYearly
+        ? _offering!.annual
+        : _offering!.monthly;
+  }
+
+  Future<void> _purchaseIAP() async {
+    final pkg = _selectedPackage;
+    if (pkg == null) {
+      _showError('Store product not available. Please try again later.');
+      return;
+    }
+    setState(() => _isLoading = true);
+    try {
+      await Purchases.purchasePackage(pkg);
+      await SubscriptionService.instance.refreshAfterPayment();
+      if (mounted) {
+        setState(() => _isLoading = false);
+        widget.onSubscribed?.call();
+      }
+    } on PurchasesErrorCode catch (e) {
+      if (e == PurchasesErrorCode.purchaseCancelledError) {
+        // User backed out — silent.
+      } else {
+        _showError('Purchase failed: ${e.name}');
+      }
+      if (mounted) setState(() => _isLoading = false);
+    } catch (e) {
+      _showError('An unexpected error occurred.');
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  // ─── Flutterwave ──────────────────────────────────────────────────────────
+
+  Future<void> _subscribeFlutterwave() async {
     final user = ref.read(authControllerProvider).user;
     if (user == null) return;
-
     setState(() => _isLoading = true);
-
     try {
       final txRef = await PaymentService.instance.initiatePayment(
         plan: _selectedPlan,
@@ -57,20 +161,12 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
       setState(() => _pendingTxRef = txRef);
       _startPolling(txRef);
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString()),
-            backgroundColor: ChailColors.error,
-          ),
-        );
-      }
+      _showError(e.toString());
       setState(() => _isLoading = false);
     }
   }
 
   void _startPolling(String txRef) {
-    // Poll every 5 seconds for up to 5 minutes
     int attempts = 0;
     _pollTimer = Timer.periodic(const Duration(seconds: 5), (timer) async {
       attempts++;
@@ -79,7 +175,6 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
         if (mounted) setState(() => _isLoading = false);
         return;
       }
-
       final verified = await PaymentService.instance.verifyPayment(txRef);
       if (verified) {
         timer.cancel();
@@ -92,6 +187,15 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
     });
   }
 
+  void _showError(String msg) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(msg), backgroundColor: ChailColors.error),
+    );
+  }
+
+  // ─── Build ────────────────────────────────────────────────────────────────
+
   @override
   Widget build(BuildContext context) {
     final appName = ChailAuth.appName ?? 'Pro';
@@ -101,7 +205,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              // ── Header gradient ──────────────────────────────────────────
+              // ── Header gradient ─────────────────────────────────────────
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.fromLTRB(24, 48, 24, 32),
@@ -136,9 +240,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
                     Text(
                       'Everything you need, one simple subscription.',
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.8),
-                        fontSize: 15,
-                      ),
+                          color: Colors.white.withOpacity(0.8), fontSize: 15),
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -147,115 +249,14 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
 
               Padding(
                 padding: const EdgeInsets.all(ChailConstants.paddingL),
-                child: Column(
-                  children: [
-                    // ── Features ─────────────────────────────────────────
-                    ..._features.map(
-                      (f) => Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 22,
-                              height: 22,
-                              decoration: BoxDecoration(
-                                color: ChailColors.primary.withOpacity(0.15),
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(Icons.check,
-                                  size: 14, color: ChailColors.primary),
-                            ),
-                            const SizedBox(width: 12),
-                            Text(f,
-                                style: Theme.of(context).textTheme.bodyMedium),
-                          ],
+                child: _isLoading && _paymentMode == null
+                    ? const Center(
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: 48),
+                          child: CircularProgressIndicator(),
                         ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // ── Plan Toggle ──────────────────────────────────────
-                    Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surface,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                            color: Theme.of(context).colorScheme.outline),
-                      ),
-                      child: Row(
-                        children: [
-                          _PlanTab(
-                            label: 'Monthly',
-                            price: '₦${_prices[ChailConstants.planMonthly]}',
-                            isSelected:
-                                _selectedPlan == ChailConstants.planMonthly,
-                            onTap: () => setState(
-                                () => _selectedPlan = ChailConstants.planMonthly),
-                          ),
-                          _PlanTab(
-                            label: 'Yearly',
-                            price: '₦${_prices[ChailConstants.planYearly]}',
-                            badge: 'Save 20%',
-                            isSelected:
-                                _selectedPlan == ChailConstants.planYearly,
-                            onTap: () => setState(
-                                () => _selectedPlan = ChailConstants.planYearly),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // ── CTA ──────────────────────────────────────────────
-                    if (_pendingTxRef != null && _isLoading)
-                      Column(
-                        children: [
-                          const CircularProgressIndicator(),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Waiting for payment confirmation...',
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                          const SizedBox(height: 8),
-                          TextButton(
-                            onPressed: () async {
-                              final verified = await PaymentService.instance
-                                  .verifyPayment(_pendingTxRef!);
-                              if (verified && mounted) {
-                                await SubscriptionService.instance
-                                    .refreshAfterPayment();
-                                widget.onSubscribed?.call();
-                              }
-                            },
-                            child: const Text("I've paid — check again"),
-                          ),
-                        ],
                       )
-                    else
-                      ChailButton(
-                        label: _isLoading
-                            ? 'Opening payment...'
-                            : 'Subscribe — ₦${_prices[_selectedPlan]}/${_selectedPlan == ChailConstants.planYearly ? "yr" : "mo"}',
-                        isLoading: _isLoading,
-                        onPressed: _subscribe,
-                      ),
-
-                    const SizedBox(height: 16),
-                    Text(
-                      'Secure payment via Flutterwave. Cancel anytime.',
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onSurface
-                                .withOpacity(0.4),
-                          ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
+                    : _buildBody(appName),
               ),
             ],
           ),
@@ -263,7 +264,189 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
       ),
     );
   }
+
+  Widget _buildBody(String appName) {
+    return Column(
+      children: [
+        // ── Features ───────────────────────────────────────────────────
+        ..._features.map(
+          (f) => Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Row(
+              children: [
+                Container(
+                  width: 22,
+                  height: 22,
+                  decoration: BoxDecoration(
+                    color: ChailColors.primary.withOpacity(0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.check,
+                      size: 14, color: ChailColors.primary),
+                ),
+                const SizedBox(width: 12),
+                Text(f, style: Theme.of(context).textTheme.bodyMedium),
+              ],
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 24),
+
+        // ── Plan Toggle ────────────────────────────────────────────────
+        _buildPlanToggle(),
+
+        const SizedBox(height: 24),
+
+        // ── Payment buttons ────────────────────────────────────────────
+        _buildPaymentButtons(),
+
+        const SizedBox(height: 12),
+        _buildFooterNote(),
+      ],
+    );
+  }
+
+  Widget _buildPlanToggle() {
+    // For IAP modes, show prices from the RevenueCat offering when available.
+    String monthlyLabel = '₦${_fwPrices[ChailConstants.planMonthly]}';
+    String yearlyLabel  = '₦${_fwPrices[ChailConstants.planYearly]}';
+    if (_offering != null) {
+      final mp = _offering!.monthly?.storeProduct.priceString;
+      final yp = _offering!.annual?.storeProduct.priceString;
+      if (mp != null) monthlyLabel = mp;
+      if (yp != null) yearlyLabel  = yp;
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Theme.of(context).colorScheme.outline),
+      ),
+      child: Row(
+        children: [
+          _PlanTab(
+            label: 'Monthly',
+            price: monthlyLabel,
+            isSelected: _selectedPlan == ChailConstants.planMonthly,
+            onTap: () =>
+                setState(() => _selectedPlan = ChailConstants.planMonthly),
+          ),
+          _PlanTab(
+            label: 'Yearly',
+            price: yearlyLabel,
+            badge: 'Save 20%',
+            isSelected: _selectedPlan == ChailConstants.planYearly,
+            onTap: () =>
+                setState(() => _selectedPlan = ChailConstants.planYearly),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPaymentButtons() {
+    // Show polling state if awaiting Flutterwave confirmation.
+    if (_pendingTxRef != null && _isLoading) {
+      return Column(
+        children: [
+          const CircularProgressIndicator(),
+          const SizedBox(height: 16),
+          Text('Waiting for payment confirmation...',
+              style: Theme.of(context).textTheme.bodyMedium),
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: () async {
+              final verified =
+                  await PaymentService.instance.verifyPayment(_pendingTxRef!);
+              if (verified && mounted) {
+                await SubscriptionService.instance.refreshAfterPayment();
+                widget.onSubscribed?.call();
+              }
+            },
+            child: const Text("I've paid — check again"),
+          ),
+        ],
+      );
+    }
+
+    final mode = _paymentMode ?? _PaymentMode.iapOnly;
+
+    switch (mode) {
+      // ── Android: Flutterwave primary, Google Play Billing secondary ──
+      case _PaymentMode.flutterwavePrimary:
+        return Column(
+          children: [
+            ChailButton(
+              label: _isLoading
+                  ? 'Opening payment...'
+                  : 'Pay with Flutterwave — ₦${_fwPrices[_selectedPlan]}/'
+                      '${_selectedPlan == ChailConstants.planYearly ? "yr" : "mo"}',
+              isLoading: _isLoading,
+              onPressed: _subscribeFlutterwave,
+            ),
+            const SizedBox(height: 12),
+            ChailButton(
+              label: 'Google Play Billing',
+              isLoading: _isLoading,
+              variant: ChailButtonVariant.secondary,
+              onPressed: _purchaseIAP,
+            ),
+          ],
+        );
+
+      // ── iOS US: App Store primary, Flutterwave secondary ────────────
+      case _PaymentMode.iapPrimary:
+        return Column(
+          children: [
+            ChailButton(
+              label: _isLoading ? 'Opening App Store...' : 'Subscribe with App Store',
+              isLoading: _isLoading,
+              onPressed: _purchaseIAP,
+            ),
+            const SizedBox(height: 12),
+            ChailButton(
+              label: 'Pay with Flutterwave / Apple Pay',
+              isLoading: _isLoading,
+              variant: ChailButtonVariant.secondary,
+              onPressed: _subscribeFlutterwave,
+            ),
+          ],
+        );
+
+      // ── iOS non-US: App Store only ───────────────────────────────────
+      case _PaymentMode.iapOnly:
+        return ChailButton(
+          label: _isLoading ? 'Opening App Store...' : 'Subscribe with App Store',
+          isLoading: _isLoading,
+          onPressed: _purchaseIAP,
+        );
+    }
+  }
+
+  Widget _buildFooterNote() {
+    final mode = _paymentMode;
+    String note;
+    if (mode == _PaymentMode.flutterwavePrimary) {
+      note = 'Secure payment via Flutterwave or Google Play. Cancel anytime.';
+    } else if (mode == _PaymentMode.iapPrimary) {
+      note = 'Billed through App Store or Flutterwave. Cancel anytime.';
+    } else {
+      note = 'Billed through the App Store. Cancel anytime in Settings.';
+    }
+    return Text(
+      note,
+      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
+          ),
+      textAlign: TextAlign.center,
+    );
+  }
 }
+
+// ─── _PlanTab ────────────────────────────────────────────────────────────────
 
 class _PlanTab extends StatelessWidget {
   final String label;
@@ -308,7 +491,10 @@ class _PlanTab extends StatelessWidget {
                 style: TextStyle(
                   color: isSelected
                       ? Colors.white.withOpacity(0.85)
-                      : Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                      : Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withOpacity(0.6),
                   fontSize: 12,
                 ),
               ),

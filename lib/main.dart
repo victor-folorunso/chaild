@@ -8,12 +8,11 @@ import 'package:chaild_auth/chaild_auth.dart';
 /// Everything else (Supabase, Flutterwave) is baked into ChailAppEnv.
 /// ─────────────────────────────────────────────────────────────────────────────
 
-/// YOUR RevenueCat public key — get it from:
-/// revenuecat.com → Projects → your project → API Keys
-/// Use the iOS key when building for iOS, Android key for Android.
-/// Typically you'd inject this via --dart-define per platform, but for
-/// testing you can hardcode the key here temporarily.
-const String _revenueCatApiKey = 'YOUR_REVENUECAT_PUBLIC_KEY';
+/// RevenueCat public key injected at build time.
+/// Build commands:
+///   iOS:     flutter run --dart-define=RC_KEY=appl_xxx
+///   Android: flutter run --dart-define=RC_KEY=goog_xxx
+const String _revenueCatApiKey = String.fromEnvironment('RC_KEY');
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
