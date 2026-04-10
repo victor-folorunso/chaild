@@ -1,3 +1,4 @@
+import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../config/chaild_constants.dart';
@@ -92,9 +93,10 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   _ErrorBanner(auth.error!),
 
                 // ── Social first (lower friction) ────────────────────────
-                ChaildAppleButton(
-                    isLoading: auth.isLoading, onPressed: _signInApple),
-                const SizedBox(height: 12),
+                if (Platform.isIOS)
+                  ChaildAppleButton(
+                      isLoading: auth.isLoading, onPressed: _signInApple),
+                if (Platform.isIOS) const SizedBox(height: 12),
                 ChaildGoogleButton(
                     isLoading: auth.isLoading, onPressed: _signInGoogle),
                 const SizedBox(height: 24),
