@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../config/chaild_constants.dart';
@@ -145,11 +146,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 const SizedBox(height: 24),
 
                 // ── Social Buttons ───────────────────────────────────────
-                ChailAppleButton(
-                  isLoading: auth.isLoading,
-                  onPressed: _signInApple,
-                ),
-                const SizedBox(height: 12),
+                if (Platform.isIOS) ...[
+                  ChailAppleButton(
+                    isLoading: auth.isLoading,
+                    onPressed: _signInApple,
+                  ),
+                  const SizedBox(height: 12),
+                ],
                 ChailGoogleButton(
                   isLoading: auth.isLoading,
                   onPressed: _signInGoogle,

@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -41,6 +43,9 @@ class AuthService {
   // ── Apple Sign In ─────────────────────────────────────────────────────────
 
   Future<AuthResponse> signInWithApple() async {
+    if (!Platform.isIOS && defaultTargetPlatform != TargetPlatform.macOS) {
+      throw UnsupportedError('Apple Sign In is only supported on iOS and macOS.');
+    }
     final credential = await SignInWithApple.getAppleIDCredential(
       scopes: [
         AppleIDAuthorizationScopes.email,

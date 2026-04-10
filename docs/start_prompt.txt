@@ -1,0 +1,304 @@
+CHAILD IMPLEMENTATION SESSION
+==============================
+
+You are working on the Chaild Flutter SDK project. Chaild is a drop-in SDK
+that provides authentication, subscriptions, storage, and security for Flutter
+apps. Multiple partner apps publish under a single Chaild developer account.
+Users pay one shared subscription that unlocks all partner apps. Partners earn
+70% of revenue proportional to usage time.
+
+PROJECT ROOT: C:\Users\victo\Documents\SandBox\chaild
+  packages/chaild_auth/   <- main SDK package
+  packages/chaild_storage/ <- storage package (to be created)
+  lib/main.dart           <- test runner app
+  supabase_diary/         <- edge functions and SQL patches
+  docs/                   <- full specification (source of truth)
+
+==============================
+STEP 0: ORIENT YOURSELF FIRST
+==============================
+
+Before reading any source file, run these two git commands. They cost almost
+no tokens and tell you everything about the current state of the repo.
+
+  git -C "C:\Users\victo\Documents\SandBox\chaild" log --oneline -10
+
+This shows the last 10 commits. Each commit message names the section that
+was completed. The most recent commit tells you exactly where to resume.
+
+  git -C "C:\Users\victo\Documents\SandBox\chaild" diff --stat HEAD
+
+This shows any work-in-progress that was not committed yet (partial writes,
+incomplete tasks). If this is empty, everything is clean and committed.
+
+DECISION TREE:
+
+A) No commits exist yet (fresh repo):
+   -> Read all docs (see DOCS TO READ below), then read existing source files
+      listed under WHAT ALREADY EXISTS, then begin Section 2.
+
+B) Commits exist, diff --stat HEAD is empty (clean between sessions):
+   -> Read only the commit log to find the last completed section.
+   -> Run: git diff HEAD~1 --stat
+      This shows what the last session changed. Read only those specific files
+      using: git diff HEAD~1 -- path/to/file
+      This gives you the delta only, not the whole file. Use it to reconstruct
+      context for the next task without reading entire files.
+   -> Resume at the next incomplete section.
+
+C) Commits exist, diff --stat HEAD is NOT empty (session ended mid-task):
+   -> Run: git diff HEAD -- path/to/each/modified/file
+      Read each delta to understand what was partially done.
+   -> Either complete the partial work or revert it cleanly with:
+      git checkout HEAD -- path/to/file
+   -> Then resume from that task.
+
+NEVER read a whole source file if you can reconstruct its relevant context
+from git diff output. A diff of 20 lines beats reading 300 lines every time.
+
+
+==============================
+DOCS TO READ (fresh session only)
+==============================
+
+Read all of these before touching any code. On resume sessions, skip this
+and use git diff to reconstruct context instead.
+
+  docs/ROADMAP.md         <- master task list, work top to bottom by section
+  docs/README.md          <- SDK overview and integration guide
+  docs/AUTH.md            <- authentication specification
+  docs/SUBSCRIPTIONS.md   <- subscription flow specification
+  docs/STORAGE.md         <- ChaildStorage specification
+  docs/SECURITY.md        <- biometrics, 2FA, app lock specification
+  docs/REVENUE.md         <- revenue split and referral specification
+  docs/BUILDING.md        <- platform setup (Android/iOS native files)
+  docs/COMPLIANCE.md      <- payment compliance rules (internal, critical)
+  docs/KEYS.md            <- key management guide (internal)
+  docs/PARTNER_AGREEMENT.md <- partner terms
+
+==============================
+WHAT ALREADY EXISTS
+==============================
+
+packages/chaild_auth/lib/
+  chaild_auth.dart                         <- public export barrel
+  src/chaild_auth_config.dart              <- ChaildAuth.initialize()
+  src/config/app_env.dart                  <- Supabase + Flutterwave keys (placeholders)
+  src/config/chaild_constants.dart
+  src/config/chaild_theme.dart
+  src/controllers/auth_controller.dart     <- Riverpod auth state
+  src/models/chaild_user.dart
+  src/models/chaild_subscription.dart
+  src/screens/account_screen.dart
+  src/screens/chaild_auth_flow.dart
+  src/screens/forgot_password_screen.dart
+  src/screens/login_screen.dart
+  src/screens/signup_screen.dart
+  src/screens/subscription_screen.dart     <- Flutterwave only, needs IAP
+  src/services/auth_service.dart           <- Apple Sign In bug, missing delete_user RPC
+  src/services/payment_service.dart        <- sets chaild:// redirect, scheme not registered
+  src/services/subscription_service.dart
+  src/widgets/chaild_button.dart
+  src/widgets/chaild_guard.dart            <- may only check auth, not subscription
+  src/widgets/chaild_text_field.dart
+
+supabase_diary/functions/
+  flutterwave-webhook/index.ts             <- EXISTS
+  verify-subscription/index.ts             <- EXISTS
+  process-payout/index.ts                  <- EXISTS, references payout-webhook (missing)
+
+supabase_diary/patches/
+  001_initial_schema.sql through 004_payouts.sql <- ALL EXIST
+
+lib/main.dart                              <- test runner, hardcoded RC key (needs dart-define)
+
+
+==============================
+WHAT IS MISSING (follow ROADMAP.md section order)
+==============================
+
+SECTION 1 - Keys: placeholder values in app_env.dart. No code to write.
+
+SECTION 2 - Critical Bug Fixes:
+  2.1 auth_service.dart: Apple Sign In called without platform guard -> crashes Android
+  2.2 Google Sign In native files missing -> crashes on launch (see BUILDING.md)
+  2.3 rpc('delete_user') called but SQL function missing
+      -> create supabase_diary/patches/005_rpc_delete_user.sql
+  2.4 process-payout references payout-webhook which does not exist
+      -> create supabase_diary/functions/payout-webhook/index.ts
+  2.5 chaild:// URL scheme not registered in AndroidManifest.xml or Info.plist
+
+SECTION 3 - Native IAP:
+  3.1 subscription_screen.dart: Flutterwave only, needs platform/storefront detection
+      and native IAP via Purchases.purchasePackage(). Follow compliance matrix exactly:
+        iOS non-US: App Store IAP only
+        iOS US: App Store IAP primary, Flutterwave secondary
+        Android all: Flutterwave primary, Google Play Billing secondary
+  3.2 RevenueCat product setup in App Store Connect + Google Play (non-code steps)
+  3.3 Remove hardcoded _revenueCatApiKey from main.dart -> use --dart-define=RC_KEY
+
+SECTION 4 - Security:
+  4.1 src/services/biometric_service.dart -> create
+      src/widgets/chaild_app_lock.dart -> create
+      account_screen.dart -> add biometric toggle
+  4.2 src/services/two_factor_service.dart -> create
+      src/screens/two_factor_screen.dart -> create
+      auth_controller.dart -> add 2FA challenge step after email/password sign-in
+  4.3 chaild_app_lock.dart: idle timeout + app lifecycle listener (covered in 4.1)
+  4.4 supabase_diary/patches/006_id_verification.sql -> create
+      chaild_auth_config.dart -> add requiresIdVerification parameter
+      chaild_guard.dart -> add ID verification scaffold check
+
+SECTION 5 - ChaildStorage package (entire package missing):
+  packages/chaild_storage/pubspec.yaml -> create
+  packages/chaild_storage/lib/chaild_storage.dart -> create (public barrel)
+  packages/chaild_storage/lib/src/chaild_storage_config.dart -> create
+    (ChaildStorage: initialize, set, get, setSecure, getSecure, delete,
+     deleteSecure, has, clear)
+  packages/chaild_storage/lib/src/chaild_collection.dart -> create
+    (ChaildCollection: add, getAll, getById, update, delete, clear)
+  packages/chaild_storage/lib/src/chaild_query.dart -> create
+    (ChaildQuery: where, and, or, andGroup, orGroup, implements Future)
+  root pubspec.yaml -> add chaild_storage path dependency
+  lib/main.dart -> add ChaildStorage.initialize() call
+  Full spec: docs/STORAGE.md
+
+SECTION 6 - Bundle ID Enforcement:
+  supabase_diary/patches/007_bundle_id_enforcement.sql -> create
+  supabase_diary/functions/attribute-user/index.ts -> create
+  chaild_auth_config.dart -> add bundleId param (read via package_info_plus)
+  auth_service.dart -> remove client-side _setPartnerKey (moves to attribute-user)
+
+SECTION 7 - Revenue Split and Usage Tracking:
+  src/services/usage_tracking_service.dart -> create
+  supabase_diary/functions/record-usage/index.ts -> create
+  supabase_diary/functions/distribute-revenue/index.ts -> create
+  supabase_diary/patches/008_app_usage.sql -> create
+
+SECTION 8 - Developer Portal: separate Next.js repo, not in this folder. Skip.
+
+SECTION 9 - Multiple Payout Options:
+  supabase_diary/patches/009_rename_transfer_reference.sql -> create
+  supabase_diary/functions/process-payout/index.ts -> add crypto payout path
+
+SECTION 10 - UI Polish:
+  10.1 account_screen.dart -> collapsible sections: Security, Subscription, About
+  10.2 subscription_screen.dart -> platform-aware display (covered by Section 3.1)
+  10.3 chaild_guard.dart -> verify it checks subscription, not just auth
+
+SQL PATCHES (write then run in Supabase SQL Editor in this order):
+  005_rpc_delete_user.sql
+  006_id_verification.sql
+  007_bundle_id_enforcement.sql
+  008_app_usage.sql
+  009_rename_transfer_reference.sql
+
+EDGE FUNCTIONS (write then deploy via Supabase CLI):
+  payout-webhook
+  attribute-user
+  record-usage
+  distribute-revenue
+
+
+==============================
+HOW TO WORK: THE EDIT LOOP
+==============================
+
+This is the core working pattern. Follow it for every single task.
+
+BEFORE starting a task:
+  git -C "C:\Users\victo\Documents\SandBox\chaild" diff --stat HEAD
+  -> Must be empty. If not, finish or revert the previous task first.
+
+TO READ an existing file you have not seen this session:
+  Read it once. Remember it. Never read it again in the same session.
+  Use git diff to see changes to it after that first read.
+
+TO MODIFY an existing file:
+  Use edit_block with a surgical old_string/new_string. Never rewrite the
+  whole file. Include only the minimum surrounding lines needed to make the
+  old_string unique. 3 lines of context is usually enough.
+
+TO CREATE a new file:
+  Write it in chunks if it is over 30 lines. Append subsequent chunks.
+  Do not read it back after writing unless the write tool reports an error.
+
+AFTER completing a task (one logical unit of work):
+  1. Run: git -C "C:\Users\victo\Documents\SandBox\chaild" diff --stat HEAD
+     Verify: every file that should have changed is listed.
+     Verify: no unexpected files appear.
+     Verify: line count deltas look plausible (a new 80-line service file
+     should show +80, not +5 — +5 means a partial write happened).
+
+  2. If anything looks wrong, run:
+     git -C "C:\Users\victo\Documents\SandBox\chaild" diff HEAD -- path/to/file
+     Read only that file's delta to diagnose the problem. Fix it.
+
+  3. When the diff stat is clean and correct, commit:
+     git -C "C:\Users\victo\Documents\SandBox\chaild" add -A
+     git -C "C:\Users\victo\Documents\SandBox\chaild" commit -m "Section X.Y: brief description"
+
+     Use the section number from ROADMAP.md as the commit message prefix.
+     Example: "Section 2.3: add 005_rpc_delete_user.sql patch"
+     Example: "Section 5.1: scaffold chaild_storage package"
+
+  4. Move to the next task. The commit is the checkpoint. If this session
+     ends before the next commit, the next session will find it via
+     git diff --stat HEAD and know exactly what to finish.
+
+NEVER commit a partial task. A commit means the task is complete and the
+code compiles (or the SQL/TS file is syntactically valid).
+
+==============================
+FILE READING RULES (token budget)
+==============================
+
+Two categories of files. Apply different rules to each.
+
+CATEGORY A — COMPLEX FILES WITH CROSS-SESSION INTERDEPENDENCIES:
+  packages/chaild_auth/lib/src/services/auth_service.dart
+  packages/chaild_auth/lib/src/controllers/auth_controller.dart
+  packages/chaild_auth/lib/src/widgets/chaild_guard.dart
+  packages/chaild_auth/lib/src/services/subscription_service.dart
+  packages/chaild_auth/lib/src/chaild_auth_config.dart
+
+  These files are touched across multiple roadmap sections and contain
+  internal interdependencies a diff cannot fully convey. For these files:
+  -> Read the full file at the START of any session where you will modify it,
+     even if you read it in a previous session.
+  -> After your edits, use git diff to verify — never re-read to check.
+  -> One full read per session per file. That is the limit.
+
+CATEGORY B — EVERYTHING ELSE (new files, SQL patches, edge functions,
+  config files, screens, widgets not listed above):
+  -> Never read the whole file if git diff output is enough.
+  -> If creating a new file: write it, do not read it back.
+  -> If modifying a small targeted section: use git diff -- path to see
+     only the relevant delta before editing.
+  -> If a file is over 100 lines and you need context for one section,
+     use head/tail line range parameters — not a full read.
+
+APPLIES TO ALL FILES:
+  Never read docs again on a resume session — use git log to find position.
+  Never read a file solely to confirm a write succeeded — use diff --stat.
+
+==============================
+COMPLIANCE RULES (non-negotiable)
+==============================
+
+iOS non-US storefront: Native IAP only. No external payment links. No exceptions.
+iOS US storefront: Native IAP primary, Flutterwave/Apple Pay secondary.
+Android all regions: Flutterwave primary, Google Play Billing secondary.
+Source: docs/COMPLIANCE.md. Do not deviate from this matrix under any framing.
+
+No secrets in Dart files. Secret keys go to Supabase CLI secrets only.
+Public RevenueCat keys use --dart-define=RC_KEY at build time.
+SQL patches: always SECURITY DEFINER where needed, always include RLS policies.
+Edge functions: verify FLUTTERWAVE_SECRET_HASH on all Flutterwave webhook receivers.
+
+==============================
+DONE WHEN
+==============================
+
+All conditions in the "Definition of Production Ready" section of ROADMAP.md
+are met. That checklist is the final authority, not this file.
