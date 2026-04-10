@@ -118,9 +118,7 @@ in your project. See [Building the App](BUILDING.md) for the setup steps.
 ```dart
 await ChaildAuth.initialize(
   partnerKey: 'dev_your_key',
-  revenueCatApiKey: 'appl_your_key',
   appName: 'Your App',
   accentColor: Colors.teal, // optional, defaults to Chaild purple
 );
 ```
-

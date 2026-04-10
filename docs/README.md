@@ -1,4 +1,4 @@
-# Chaild SDK -- Developer Documentation
+# Chaild SDK: Developer Documentation
 
 Chaild is a drop-in Flutter SDK that handles authentication, subscriptions,
 storage, and security for your app. You write a few lines of code. Your users
@@ -12,7 +12,9 @@ user who subscribes through your app.
 - Flutter 3.27 or higher
 - Dart 3.6 or higher
 - A Chaild developer account at portal.chaild.app
-- Your own RevenueCat project (free to create)
+
+Note: Chaild manages all payment infrastructure and RevenueCat centrally.
+You do not need your own RevenueCat account.
 
 ---
 
@@ -43,7 +45,6 @@ Future<void> main() async {
 
   await ChaildAuth.initialize(
     partnerKey: 'dev_your_key_here',
-    revenueCatApiKey: 'appl_your_rc_key',
     appName: 'Your App Name',
   );
 
@@ -65,10 +66,9 @@ That is everything required. The rest is optional customisation.
 
 ## Documentation Index
 
-- [Authentication](AUTH.md) -- sign in, sign up, social login, password reset
-- [Subscriptions](SUBSCRIPTIONS.md) -- payment flow, checking status, RevenueCat setup
-- [Storage](STORAGE.md) -- local key-value and collections
-- [Security](SECURITY.md) -- biometrics, 2FA, app lock
-- [Revenue and Referrals](REVENUE.md) -- how you earn, usage tracking, payouts
-- [Building the App](BUILDING.md) -- platform config, keys, build commands
-
+- [Authentication](AUTH.md): sign in, sign up, social login, password reset
+- [Subscriptions](SUBSCRIPTIONS.md): payment flow, checking status
+- [Storage](STORAGE.md): local key-value and collections
+- [Security](SECURITY.md): biometrics, 2FA, app lock
+- [Revenue and Referrals](REVENUE.md): how you earn, usage tracking, payouts
+- [Building the App](BUILDING.md): platform config, build commands

@@ -1,4 +1,4 @@
-# Keys -- How to Get Everything You Need
+# Keys: How to Get Everything You Need
 
 This file is for you, the Chaild platform owner. Plain English, no jargon.
 These are YOUR keys that run the Chaild backend. Not for developers using
@@ -15,7 +15,7 @@ These go into `packages/chaild_auth/lib/src/config/app_env.dart`.
 3. Click Settings in the left sidebar.
 4. Click API.
 5. You will see two things you need:
-   - "Project URL" -- this is your supabaseUrl. Looks like
+   - "Project URL": this is your supabaseUrl. Looks like
      https://abcdefghijk.supabase.co
    - Under "Project API Keys" find the row that says "anon public" and
      copy the key next to it. This is your supabaseAnonKey.
@@ -62,7 +62,7 @@ a webhook request really came from them.
 3. Add a new webhook.
 4. The URL is:
    https://YOUR_SUPABASE_PROJECT_REF.supabase.co/functions/v1/flutterwave-webhook
-   (replace YOUR_SUPABASE_PROJECT_REF with your project ref -- see below for
+   (replace YOUR_SUPABASE_PROJECT_REF with your project ref, see below for
    how to find that)
 5. In the "Secret Hash" field type any strong password you make up.
    Write it down. You will push it to Supabase as FLUTTERWAVE_SECRET_HASH.
@@ -75,7 +75,7 @@ You need this for the CLI and for constructing function URLs.
 
 1. Go to supabase.com, open your project.
 2. Click Settings, then General.
-3. You will see "Reference ID" -- that is your project ref.
+3. You will see "Reference ID". That is your project ref.
    It is the same string that appears in your Project URL.
    Example: if your URL is https://abcdefghijk.supabase.co then your
    project ref is abcdefghijk.
@@ -95,16 +95,17 @@ You will push it to Supabase as REVENUECAT_API_KEY.
 
 ---
 
-## RevenueCat Public Key for iOS
+## RevenueCat Public Key for iOS (internal build only)
 
-This goes into your Flutter build command (not hardcoded in files).
+This is used in your own build commands when building the Chaild app.
+Partner developers never see or use this key.
 
-1. Same page -- app.revenuecat.com, your project, API Keys.
+1. Same page: app.revenuecat.com, your project, API Keys.
 2. Find the key that starts with appl_. That is for iOS.
 
 ---
 
-## RevenueCat Public Key for Android
+## RevenueCat Public Key for Android (internal build only)
 
 1. Same page.
 2. Find the key that starts with goog_. That is for Android.
@@ -189,6 +190,5 @@ once they exist.
 | REVENUECAT_API_KEY | Supabase CLI secrets | RevenueCat project, API Keys, secret key (sk_) |
 | REVENUECAT_ENTITLEMENT | Supabase CLI secrets | Always the word: pro |
 | CRON_SECRET | Supabase CLI secrets | You generate this with openssl rand -hex 32 |
-| RC iOS public key | Flutter build --dart-define | RevenueCat API Keys, starts with appl_ |
-| RC Android public key | Flutter build --dart-define | RevenueCat API Keys, starts with goog_ |
-
+| RC iOS public key | Internal build only | RevenueCat API Keys, starts with appl_ |
+| RC Android public key | Internal build only | RevenueCat API Keys, starts with goog_ |

@@ -17,9 +17,13 @@ as your referral. Attribution only happens at the moment the account is created.
 
 ---
 
-## How Revenue is Split
+## Revenue Split Model
 
-Chaild uses a time-weighted model. At the end of each month, Chaild looks at
+Chaild uses a 70/30 revenue split. You receive 70% of the subscription revenue
+from users you bring to the platform. Chaild retains 30% to cover platform
+costs, payment processing, and infrastructure.
+
+The distribution is time-weighted. At the end of each month, Chaild looks at
 how much time each subscribed user spent in each app. Your share of their
 subscription is proportional to how much time they spent in your app relative
 to all other apps they use.
@@ -28,16 +32,28 @@ If a user signed up specifically through your app (direct referral), your
 usage hours are counted double for that user. This rewards you for bringing
 users in, but only as long as they actually use your app.
 
-Example:
-- User pays 2500 NGN per month
-- Your app: 14 weighted hours (7 actual hours, doubled because you referred)
+Example calculation:
+- User pays $3 per month for Chaild Pro
+- Your app: 14 weighted hours (7 actual hours, doubled because you referred them)
 - Other app A: 15 hours
 - Other app B: 23 hours
 - Total weighted hours: 52
-- Your earnings from this user: (14 / 52) x 2500 = 673 NGN
+- Your share of 70%: (14 / 52) x ($3 x 0.70) = $0.57 per month from this user
 
 If your app stops being useful to the user and they stop using it, your
 earnings from that user go to zero automatically. This keeps the model fair.
+
+---
+
+## Potential Earnings
+
+At 1,000 active monthly users each paying $3/month:
+- Total subscription revenue: $3,000/month
+- Developer share (70%): $2,100/month distributed across all partners
+
+The actual amount you receive depends on how much time users spend in your app
+relative to other apps they use. Apps that provide genuine daily value earn the
+most. If you are the only app a user spends time in, you receive their full 70%.
 
 ---
 
@@ -54,16 +70,16 @@ Chaild, they need to build an app that integrates the SDK.
 ## Payouts
 
 Payouts are processed automatically at the start of each month for any
-partner with an unpaid balance above the minimum threshold (5000 NGN).
+partner with an unpaid balance above the minimum threshold ($15).
 
 You will receive your payout via the method you configured in the developer
 portal. Currently supported:
 
-- Bank transfer (via Flutterwave, Nigerian banks)
-- Crypto (USDT and other supported networks)
+- Bank transfer via Flutterwave (covers a wide range of supported regions)
+- Cryptocurrency (USDT and other supported networks)
 
 Set your payout details in the developer portal under Payout Settings. You
-will not receive payouts until your bank or wallet details are saved.
+will not receive payouts until your bank details or wallet address are saved.
 
 You can view your full earnings history and payout history in the developer
 portal.
@@ -81,4 +97,3 @@ The developer portal shows:
 - Breakdown by app if you have multiple apps registered
 
 There is no stats API exposed to the Flutter SDK. Stats are portal-only.
-

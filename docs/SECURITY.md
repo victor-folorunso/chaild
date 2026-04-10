@@ -16,7 +16,6 @@ Enable it when initialising:
 ```dart
 await ChaildAuth.initialize(
   partnerKey: 'dev_your_key',
-  revenueCatApiKey: 'appl_your_key',
   appName: 'Your App',
   appLockTimeout: Duration(minutes: 5),
 );
@@ -35,12 +34,12 @@ asking for the account password.
 
 Required setup:
 
-Android -- add to `AndroidManifest.xml` inside the `<manifest>` tag:
+Android: add to `AndroidManifest.xml` inside the `<manifest>` tag:
 ```xml
 <uses-permission android:name="android.permission.USE_BIOMETRIC" />
 ```
 
-iOS -- add to `Info.plist`:
+iOS: add to `Info.plist`:
 ```xml
 <key>NSFaceIDUsageDescription</key>
 <string>Use Face ID to unlock the app quickly and securely.</string>
@@ -93,7 +92,6 @@ To require ID verification for your app:
 ```dart
 await ChaildAuth.initialize(
   partnerKey: 'dev_your_key',
-  revenueCatApiKey: 'appl_your_key',
   appName: 'Your App',
   requiresIdVerification: true,
 );
@@ -106,4 +104,3 @@ verified their identity on any other Chaild app will not be asked again.
 ID verification is completely optional. Most apps do not need it. Calculators,
 note-taking apps, and utilities should not use it. It is intended for apps
 that handle sensitive personal information or financial transactions.
-

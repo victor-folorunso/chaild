@@ -126,31 +126,12 @@ Add to `ios/Runner/Info.plist`:
 
 ---
 
-## RevenueCat API Key Per Platform
+## Payments and RevenueCat
 
-You need different RevenueCat public keys for iOS and Android. The recommended
-approach is to pass the key at build time using `--dart-define`.
-
-Build command for iOS:
-```
-flutter build ios --dart-define=RC_KEY=appl_your_ios_key_here
-```
-
-Build command for Android:
-```
-flutter build apk --dart-define=RC_KEY=goog_your_android_key_here
-```
-
-In `main.dart` read the key like this:
-```dart
-const rcKey = String.fromEnvironment('RC_KEY');
-
-await ChaildAuth.initialize(
-  partnerKey: 'dev_your_key',
-  revenueCatApiKey: rcKey,
-  appName: 'Your App',
-);
-```
+Chaild manages all App Store and Google Play billing centrally. You do not
+need a RevenueCat account and you do not pass any RevenueCat keys. When your
+app is published under the Chaild developer account, the subscription
+infrastructure is already configured and ready.
 
 ---
 
@@ -161,6 +142,5 @@ flutter pub get
 flutter run
 ```
 
-For the app to work end-to-end locally you need the keys filled in and the
-Supabase project configured. See `KEYS.md` for how to get each key.
-
+For the app to work end-to-end locally you need Supabase and Flutterwave keys
+configured. Contact the Chaild team for a development environment setup.

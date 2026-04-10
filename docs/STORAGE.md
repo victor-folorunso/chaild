@@ -71,8 +71,8 @@ on Android. It is slower than regular storage. Only use it for sensitive data.
 
 ## Collections
 
-Use collections when you need to store a list of items -- notes, history
-entries, favourites, transactions, anything with multiple records.
+Use collections when you need to store a list of items: notes, history entries,
+favourites, transactions, anything with multiple records.
 
 ```dart
 final notes = ChaildStorage.collection('notes');
@@ -114,8 +114,8 @@ Filter items without loading everything manually.
 final pinned = await notes.where('pinned', isEqualTo: true);
 
 // Numeric comparison
-final recent = await notes.where('score', isGreaterThan: 50);
-final cheap = await notes.where('price', isLessThan: 100);
+final highScores = await notes.where('score', isGreaterThan: 50);
+final affordable = await notes.where('price', isLessThan: 100);
 
 // Text search
 final results = await notes.where('title', contains: 'flutter');
@@ -124,12 +124,12 @@ final results = await notes.where('title', contains: 'flutter');
 Chaining conditions:
 
 ```dart
-// AND -- both conditions must be true
+// AND: both conditions must be true
 final pinnedAndNew = await notes
   .where('pinned', isEqualTo: true)
   .and('score', isGreaterThan: 10);
 
-// OR -- either condition is enough
+// OR: either condition is enough
 final pinnedOrFeatured = await notes
   .where('pinned', isEqualTo: true)
   .or('featured', isEqualTo: true);
@@ -154,4 +154,3 @@ There is no hard limit on how much you store but keep in mind this is device
 storage. Large collections with many items will be slower to query because
 filtering happens in memory. If you are storing thousands of records, consider
 whether a different approach suits your app better.
-
