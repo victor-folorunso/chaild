@@ -1,4 +1,4 @@
-class ChailUser {
+class ChaildUser {
   final String id;
   final String email;
   final String? name;
@@ -6,7 +6,7 @@ class ChailUser {
   final String? partnerKey; // which developer referred this user
   final DateTime createdAt;
 
-  const ChailUser({
+  const ChaildUser({
     required this.id,
     required this.email,
     this.name,
@@ -15,8 +15,8 @@ class ChailUser {
     required this.createdAt,
   });
 
-  factory ChailUser.fromMap(Map<String, dynamic> map) {
-    return ChailUser(
+  factory ChaildUser.fromMap(Map<String, dynamic> map) {
+    return ChaildUser(
       id: map['id'] as String,
       email: map['email'] as String,
       name: map['name'] as String?,

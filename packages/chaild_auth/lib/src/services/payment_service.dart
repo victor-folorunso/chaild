@@ -15,8 +15,8 @@ class PaymentService {
   static final PaymentService instance = PaymentService._();
 
   static const Map<String, int> _planAmounts = {
-    ChailConstants.planMonthly: ChailAppEnv.priceMonthlyNgn,
-    ChailConstants.planYearly: ChailAppEnv.priceYearlyNgn,
+    ChaildConstants.planMonthly: ChaildAppEnv.priceMonthlyNgn,
+    ChaildConstants.planYearly: ChaildAppEnv.priceYearlyNgn,
   };
 
   /// Initiates a Flutterwave payment by opening the browser.
@@ -26,15 +26,15 @@ class PaymentService {
     required String userEmail,
     String? userName,
   }) async {
-    final userId = ChailAuth.currentUser?.id;
+    final userId = ChaildAuth.currentUser?.id;
     if (userId == null) throw Exception('User not signed in');
 
-    final txRef = ChailConstants.flutterwaveTxRef(userId);
-    final amount = _planAmounts[plan] ?? _planAmounts[ChailConstants.planMonthly]!;
-    const publicKey = ChailAppEnv.flutterwavePublicKey;
+    final txRef = ChaildConstants.flutterwaveTxRef(userId);
+    final amount = _planAmounts[plan] ?? _planAmounts[ChaildConstants.planMonthly]!;
+    const publicKey = ChaildAppEnv.flutterwavePublicKey;
 
     // Store pending tx_ref in Supabase so webhook can find the user
-    await ChailAuth.client.from(ChailConstants.tableSubscriptions).upsert({
+    await ChaildAuth.client.from(ChaildConstants.tableSubscriptions).upsert({
       'user_id': userId,
       'status': 'none',
       'plan': plan,
@@ -53,7 +53,7 @@ class PaymentService {
       'redirect_url': 'chaild://payment-complete',
       'customer[email]': userEmail,
       if (userName != null) 'customer[name]': userName,
-      'customizations[title]': ChailAuth.appName ?? 'Chaild',
+      'customizations[title]': ChaildAuth.appName ?? 'Chaild',
       'customizations[description]': '${_planLabel(plan)} subscription',
       'meta[plan]': plan,
       'meta[user_id]': userId,
@@ -74,11 +74,11 @@ class PaymentService {
 
   /// Poll Supabase to check if the webhook has activated the subscription.
   Future<bool> verifyPayment(String txRef) async {
-    final userId = ChailAuth.currentUser?.id;
+    final userId = ChaildAuth.currentUser?.id;
     if (userId == null) return false;
 
-    final data = await ChailAuth.client
-        .from(ChailConstants.tableSubscriptions)
+    final data = await ChaildAuth.client
+        .from(ChaildConstants.tableSubscriptions)
         .select('status, expires_at')
         .eq('user_id', userId)
         .eq('flutterwave_ref', txRef)
@@ -95,5 +95,5 @@ class PaymentService {
   }
 
   String _planLabel(String plan) =>
-      plan == ChailConstants.planYearly ? 'Annual' : 'Monthly';
+      plan == ChaildConstants.planYearly ? 'Annual' : 'Monthly';
 }

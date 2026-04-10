@@ -8,18 +8,18 @@ import 'login_screen.dart';
 import 'two_factor_screen.dart';
 
 /// The root widget to drop into any app.
-/// Wraps everything in a ProviderScope + ChailTheme.
+/// Wraps everything in a ProviderScope + ChaildTheme.
 ///
 /// ```dart
-/// ChailAuthFlow(
+/// ChaildAuthFlow(
 ///   onAuthenticated: (user) => navigateToMyApp(user),
 /// )
 /// ```
-class ChailAuthFlow extends StatelessWidget {
-  final void Function(ChailUser user) onAuthenticated;
+class ChaildAuthFlow extends StatelessWidget {
+  final void Function(ChaildUser user) onAuthenticated;
   final bool darkMode;
 
-  const ChailAuthFlow({
+  const ChaildAuthFlow({
     super.key,
     required this.onAuthenticated,
     this.darkMode = true,
@@ -30,8 +30,8 @@ class ChailAuthFlow extends StatelessWidget {
     return ProviderScope(
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        theme: ChailTheme.light(),
-        darkTheme: ChailTheme.dark(),
+        theme: ChaildTheme.light(),
+        darkTheme: ChaildTheme.dark(),
         themeMode: darkMode ? ThemeMode.dark : ThemeMode.light,
         home: _AuthFlowRoot(onAuthenticated: onAuthenticated),
       ),
@@ -41,7 +41,7 @@ class ChailAuthFlow extends StatelessWidget {
 
 /// Internal root — listens to auth state and routes accordingly.
 class _AuthFlowRoot extends ConsumerStatefulWidget {
-  final void Function(ChailUser user) onAuthenticated;
+  final void Function(ChaildUser user) onAuthenticated;
 
   const _AuthFlowRoot({required this.onAuthenticated});
 

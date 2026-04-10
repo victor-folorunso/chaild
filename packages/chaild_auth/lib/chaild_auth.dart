@@ -3,7 +3,7 @@
 /// ## Quick start
 /// ```dart
 /// // 1. Initialize once in main()
-/// await ChailAuth.initialize(
+/// await ChaildAuth.initialize(
 ///   supabaseUrl: '...',
 ///   supabaseAnonKey: '...',
 ///   revenueCatApiKey: '...',
@@ -13,10 +13,10 @@
 /// );
 ///
 /// // 2a. Protect an entire screen
-/// ChailGuard(child: MyScreen())
+/// ChaildGuard(child: MyScreen())
 ///
 /// // 2b. Or handle the flow yourself
-/// ChailAuthFlow(onAuthenticated: (user) { ... })
+/// ChaildAuthFlow(onAuthenticated: (user) { ... })
 /// ```
 library chaild_auth;
 

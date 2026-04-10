@@ -1,22 +1,22 @@
 import 'package:flutter/material.dart';
 import '../config/chaild_theme.dart';
 
-enum ChailButtonVariant { primary, secondary, ghost, danger }
+enum ChaildButtonVariant { primary, secondary, ghost, danger }
 
-class ChailButton extends StatelessWidget {
+class ChaildButton extends StatelessWidget {
   final String label;
   final VoidCallback? onPressed;
   final bool isLoading;
-  final ChailButtonVariant variant;
+  final ChaildButtonVariant variant;
   final Widget? icon;
   final double? width;
 
-  const ChailButton({
+  const ChaildButton({
     super.key,
     required this.label,
     this.onPressed,
     this.isLoading = false,
-    this.variant = ChailButtonVariant.primary,
+    this.variant = ChaildButtonVariant.primary,
     this.icon,
     this.width,
   });
@@ -49,7 +49,7 @@ class ChailButton extends StatelessWidget {
     final size = Size(width ?? double.infinity, 52);
 
     switch (variant) {
-      case ChailButtonVariant.primary:
+      case ChaildButtonVariant.primary:
         return SizedBox(
           width: width,
           child: ElevatedButton(
@@ -58,7 +58,7 @@ class ChailButton extends StatelessWidget {
             child: child,
           ),
         );
-      case ChailButtonVariant.secondary:
+      case ChaildButtonVariant.secondary:
         return SizedBox(
           width: width,
           child: OutlinedButton(
@@ -67,7 +67,7 @@ class ChailButton extends StatelessWidget {
             child: child,
           ),
         );
-      case ChailButtonVariant.ghost:
+      case ChaildButtonVariant.ghost:
         return SizedBox(
           width: width,
           child: TextButton(
@@ -76,13 +76,13 @@ class ChailButton extends StatelessWidget {
             child: child,
           ),
         );
-      case ChailButtonVariant.danger:
+      case ChaildButtonVariant.danger:
         return SizedBox(
           width: width,
           child: ElevatedButton(
             onPressed: isLoading ? null : onPressed,
             style: ElevatedButton.styleFrom(
-              backgroundColor: ChailColors.error,
+              backgroundColor: ChaildColors.error,
               foregroundColor: Colors.white,
               minimumSize: size,
             ),
@@ -94,11 +94,11 @@ class ChailButton extends StatelessWidget {
 
   Color _foreground(ColorScheme cs) {
     switch (variant) {
-      case ChailButtonVariant.primary:
-      case ChailButtonVariant.danger:
+      case ChaildButtonVariant.primary:
+      case ChaildButtonVariant.danger:
         return Colors.white;
-      case ChailButtonVariant.secondary:
-      case ChailButtonVariant.ghost:
+      case ChaildButtonVariant.secondary:
+      case ChaildButtonVariant.ghost:
         return cs.primary;
     }
   }
@@ -106,11 +106,11 @@ class ChailButton extends StatelessWidget {
 
 // ── Social Sign-In Buttons ────────────────────────────────────────────────────
 
-class ChailAppleButton extends StatelessWidget {
+class ChaildAppleButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final bool isLoading;
 
-  const ChailAppleButton({super.key, this.onPressed, this.isLoading = false});
+  const ChaildAppleButton({super.key, this.onPressed, this.isLoading = false});
 
   @override
   Widget build(BuildContext context) {
@@ -152,11 +152,11 @@ class ChailAppleButton extends StatelessWidget {
   }
 }
 
-class ChailGoogleButton extends StatelessWidget {
+class ChaildGoogleButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final bool isLoading;
 
-  const ChailGoogleButton({super.key, this.onPressed, this.isLoading = false});
+  const ChaildGoogleButton({super.key, this.onPressed, this.isLoading = false});
 
   @override
   Widget build(BuildContext context) {

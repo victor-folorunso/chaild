@@ -1,6 +1,6 @@
 enum SubscriptionStatus { active, expired, cancelled, grace_period, none }
 
-class ChailSubscription {
+class ChaildSubscription {
   final String id;
   final String userId;
   final SubscriptionStatus status;
@@ -9,7 +9,7 @@ class ChailSubscription {
   final String? flutterwaveRef;
   final String? source; // 'revenuecat' | 'supabase'
 
-  const ChailSubscription({
+  const ChaildSubscription({
     required this.id,
     required this.userId,
     required this.status,
@@ -23,8 +23,8 @@ class ChailSubscription {
       status == SubscriptionStatus.active &&
       (expiresAt == null || expiresAt!.isAfter(DateTime.now()));
 
-  factory ChailSubscription.fromMap(Map<String, dynamic> map) {
-    return ChailSubscription(
+  factory ChaildSubscription.fromMap(Map<String, dynamic> map) {
+    return ChaildSubscription(
       id: map['id'] as String,
       userId: map['user_id'] as String,
       status: SubscriptionStatus.values.firstWhere(

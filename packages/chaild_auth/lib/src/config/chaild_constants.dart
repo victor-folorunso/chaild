@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 /// All hardcoded values live here.
 /// Reference this instead of magic strings/numbers anywhere in the package.
-class ChailConstants {
-  ChailConstants._();
+class ChaildConstants {
+  ChaildConstants._();
 
   // ── RevenueCat ──────────────────────────────────────────────────────────
   static const String rcEntitlement = 'pro';

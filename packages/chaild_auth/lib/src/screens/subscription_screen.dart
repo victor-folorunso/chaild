@@ -52,7 +52,7 @@ class SubscriptionScreen extends ConsumerStatefulWidget {
 }
 
 class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
-  String _selectedPlan = ChailConstants.planMonthly;
+  String _selectedPlan = ChaildConstants.planMonthly;
   bool _isLoading = false;
   String? _pendingTxRef;
   Timer? _pollTimer;
@@ -61,8 +61,8 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
 
   // Flutterwave prices (fallback / Android primary)
   static const _fwPrices = {
-    ChailConstants.planMonthly: 2500,
-    ChailConstants.planYearly: 24000,
+    ChaildConstants.planMonthly: 2500,
+    ChaildConstants.planYearly: 24000,
   };
 
   static const _features = [
@@ -114,7 +114,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
 
   Package? get _selectedPackage {
     if (_offering == null) return null;
-    return _selectedPlan == ChailConstants.planYearly
+    return _selectedPlan == ChaildConstants.planYearly
         ? _offering!.annual
         : _offering!.monthly;
   }
@@ -190,7 +190,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
   void _showError(String msg) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg), backgroundColor: ChailColors.error),
+      SnackBar(content: Text(msg), backgroundColor: ChaildColors.error),
     );
   }
 
@@ -198,7 +198,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final appName = ChailAuth.appName ?? 'Pro';
+    final appName = ChaildAuth.appName ?? 'Pro';
 
     return Scaffold(
       body: SafeArea(
@@ -213,7 +213,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [ChailColors.primaryDark, ChailColors.primary],
+                    colors: [ChaildColors.primaryDark, ChaildColors.primary],
                   ),
                 ),
                 child: Column(
@@ -248,7 +248,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
               ),
 
               Padding(
-                padding: const EdgeInsets.all(ChailConstants.paddingL),
+                padding: const EdgeInsets.all(ChaildConstants.paddingL),
                 child: _isLoading && _paymentMode == null
                     ? const Center(
                         child: Padding(
@@ -278,11 +278,11 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
                   width: 22,
                   height: 22,
                   decoration: BoxDecoration(
-                    color: ChailColors.primary.withOpacity(0.15),
+                    color: ChaildColors.primary.withOpacity(0.15),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(Icons.check,
-                      size: 14, color: ChailColors.primary),
+                      size: 14, color: ChaildColors.primary),
                 ),
                 const SizedBox(width: 12),
                 Text(f, style: Theme.of(context).textTheme.bodyMedium),
@@ -309,8 +309,8 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
 
   Widget _buildPlanToggle() {
     // For IAP modes, show prices from the RevenueCat offering when available.
-    String monthlyLabel = '₦${_fwPrices[ChailConstants.planMonthly]}';
-    String yearlyLabel  = '₦${_fwPrices[ChailConstants.planYearly]}';
+    String monthlyLabel = '₦${_fwPrices[ChaildConstants.planMonthly]}';
+    String yearlyLabel  = '₦${_fwPrices[ChaildConstants.planYearly]}';
     if (_offering != null) {
       final mp = _offering!.monthly?.storeProduct.priceString;
       final yp = _offering!.annual?.storeProduct.priceString;
@@ -330,17 +330,17 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
           _PlanTab(
             label: 'Monthly',
             price: monthlyLabel,
-            isSelected: _selectedPlan == ChailConstants.planMonthly,
+            isSelected: _selectedPlan == ChaildConstants.planMonthly,
             onTap: () =>
-                setState(() => _selectedPlan = ChailConstants.planMonthly),
+                setState(() => _selectedPlan = ChaildConstants.planMonthly),
           ),
           _PlanTab(
             label: 'Yearly',
             price: yearlyLabel,
             badge: 'Save 20%',
-            isSelected: _selectedPlan == ChailConstants.planYearly,
+            isSelected: _selectedPlan == ChaildConstants.planYearly,
             onTap: () =>
-                setState(() => _selectedPlan = ChailConstants.planYearly),
+                setState(() => _selectedPlan = ChaildConstants.planYearly),
           ),
         ],
       ),
@@ -379,19 +379,19 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
       case _PaymentMode.flutterwavePrimary:
         return Column(
           children: [
-            ChailButton(
+            ChaildButton(
               label: _isLoading
                   ? 'Opening payment...'
                   : 'Pay with Flutterwave — ₦${_fwPrices[_selectedPlan]}/'
-                      '${_selectedPlan == ChailConstants.planYearly ? "yr" : "mo"}',
+                      '${_selectedPlan == ChaildConstants.planYearly ? "yr" : "mo"}',
               isLoading: _isLoading,
               onPressed: _subscribeFlutterwave,
             ),
             const SizedBox(height: 12),
-            ChailButton(
+            ChaildButton(
               label: 'Google Play Billing',
               isLoading: _isLoading,
-              variant: ChailButtonVariant.secondary,
+              variant: ChaildButtonVariant.secondary,
               onPressed: _purchaseIAP,
             ),
           ],
@@ -401,16 +401,16 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
       case _PaymentMode.iapPrimary:
         return Column(
           children: [
-            ChailButton(
+            ChaildButton(
               label: _isLoading ? 'Opening App Store...' : 'Subscribe with App Store',
               isLoading: _isLoading,
               onPressed: _purchaseIAP,
             ),
             const SizedBox(height: 12),
-            ChailButton(
+            ChaildButton(
               label: 'Pay with Flutterwave / Apple Pay',
               isLoading: _isLoading,
-              variant: ChailButtonVariant.secondary,
+              variant: ChaildButtonVariant.secondary,
               onPressed: _subscribeFlutterwave,
             ),
           ],
@@ -418,7 +418,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
 
       // ── iOS non-US: App Store only ───────────────────────────────────
       case _PaymentMode.iapOnly:
-        return ChailButton(
+        return ChaildButton(
           label: _isLoading ? 'Opening App Store...' : 'Subscribe with App Store',
           isLoading: _isLoading,
           onPressed: _purchaseIAP,
@@ -469,10 +469,10 @@ class _PlanTab extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap,
         child: AnimatedContainer(
-          duration: ChailConstants.animFast,
+          duration: ChaildConstants.animFast,
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            color: isSelected ? ChailColors.primary : Colors.transparent,
+            color: isSelected ? ChaildColors.primary : Colors.transparent,
             borderRadius: BorderRadius.circular(9),
           ),
           child: Column(
@@ -506,7 +506,7 @@ class _PlanTab extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: isSelected
                         ? Colors.white.withOpacity(0.25)
-                        : ChailColors.primary.withOpacity(0.15),
+                        : ChaildColors.primary.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
@@ -514,7 +514,7 @@ class _PlanTab extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w600,
-                      color: isSelected ? Colors.white : ChailColors.primary,
+                      color: isSelected ? Colors.white : ChaildColors.primary,
                     ),
                   ),
                 ),

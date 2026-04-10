@@ -5,13 +5,13 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'config/app_env.dart';
 import 'services/usage_tracking_service.dart';
 
-/// ChailAuth — the SDK entry point.
+/// ChaildAuth — the SDK entry point.
 ///
 /// ─────────────────────────────────────────────────────────────────────────
 /// DEVELOPER USAGE (anyone integrating chaild_auth into their app):
 ///
 /// ```dart
-/// await ChailAuth.initialize(
+/// await ChaildAuth.initialize(
 ///   partnerKey: 'your_partner_key',     // from chaild.app developer portal
 ///   revenueCatApiKey: 'appl_xxxxx',     // your RC public key for this platform
 ///   appName: 'My App',
@@ -25,15 +25,15 @@ import 'services/usage_tracking_service.dart';
 /// YOUR OWN APPS (Contact Sync, etc.) use:
 ///
 /// ```dart
-/// await ChailAuth.initialize(
-///   partnerKey: ChailAppEnv.internalPartnerKey,
+/// await ChaildAuth.initialize(
+///   partnerKey: ChaildAppEnv.internalPartnerKey,
 ///   revenueCatApiKey: 'appl_xxxxx',
 ///   appName: 'Contact Sync',
 /// );
 /// ```
 /// ─────────────────────────────────────────────────────────────────────────
-class ChailAuth {
-  ChailAuth._();
+class ChaildAuth {
+  ChaildAuth._();
 
   static String? _partnerKey;
   static String? _appName;
@@ -51,7 +51,7 @@ class ChailAuth {
   static bool get requiresIdVerification => _requiresIdVerification;
   static String? get bundleId => _bundleId;
 
-  /// Initialize ChailAuth. Call once in main() before runApp().
+  /// Initialize ChaildAuth. Call once in main() before runApp().
   ///
   /// [partnerKey] — your unique key from the Chaild developer portal.
   ///   Every user who signs up through your app is attributed to you
@@ -75,8 +75,8 @@ class ChailAuth {
   }) async {
     // Supabase — uses Chaild's own credentials baked into the SDK
     await Supabase.initialize(
-      url: ChailAppEnv.supabaseUrl,
-      anonKey: ChailAppEnv.supabaseAnonKey,
+      url: ChaildAppEnv.supabaseUrl,
+      anonKey: ChaildAppEnv.supabaseAnonKey,
     );
 
     // RevenueCat — uses the developer's own RC key for their platform
@@ -100,7 +100,7 @@ class ChailAuth {
   }
 
   static SupabaseClient get client {
-    assert(_initialized, 'Call ChailAuth.initialize() first.');
+    assert(_initialized, 'Call ChaildAuth.initialize() first.');
     return Supabase.instance.client;
   }
 

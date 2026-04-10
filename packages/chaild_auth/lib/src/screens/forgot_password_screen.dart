@@ -47,7 +47,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(ChailConstants.paddingL),
+          padding: const EdgeInsets.all(ChaildConstants.paddingL),
           child: _sent
               ? _SuccessView(_email.text)
               : Form(
@@ -83,7 +83,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                               style:
                                   const TextStyle(color: Color(0xFFEF4444))),
                         ),
-                      ChailTextField(
+                      ChaildTextField(
                         label: 'Email',
                         hint: 'you@example.com',
                         controller: _email,
@@ -98,7 +98,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                         },
                       ),
                       const SizedBox(height: 24),
-                      ChailButton(
+                      ChaildButton(
                         label: 'Send Reset Link',
                         isLoading: auth.isLoading,
                         onPressed: _send,
@@ -140,10 +140,10 @@ class _SuccessView extends StatelessWidget {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 32),
-          ChailButton(
+          ChaildButton(
             label: 'Back to Sign In',
             onPressed: () => Navigator.pop(context),
-            variant: ChailButtonVariant.secondary,
+            variant: ChaildButtonVariant.secondary,
           ),
         ],
       ),

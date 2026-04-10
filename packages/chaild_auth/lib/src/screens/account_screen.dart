@@ -69,7 +69,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
         elevation: 0,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(ChailConstants.paddingL),
+        padding: const EdgeInsets.all(ChaildConstants.paddingL),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -79,7 +79,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                 children: [
                   CircleAvatar(
                     radius: 36,
-                    backgroundColor: ChailColors.primary.withOpacity(0.15),
+                    backgroundColor: ChaildColors.primary.withOpacity(0.15),
                     backgroundImage: user.avatarUrl != null
                         ? NetworkImage(user.avatarUrl!)
                         : null,
@@ -92,7 +92,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                             style: const TextStyle(
                               fontSize: 28,
                               fontWeight: FontWeight.w700,
-                              color: ChailColors.primary,
+                              color: ChaildColors.primary,
                             ),
                           )
                         : null,
@@ -124,11 +124,11 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
               children: [
                 _Row(
                   icon: Icons.bolt_rounded,
-                  iconColor: ChailColors.primary,
+                  iconColor: ChaildColors.primary,
                   label: 'Status',
                   trailing: sub.isActive
-                      ? _Badge('Active', ChailColors.success)
-                      : _Badge('Inactive', ChailColors.error),
+                      ? _Badge('Active', ChaildColors.success)
+                      : _Badge('Inactive', ChaildColors.error),
                 ),
                 if (sub.subscription?.expiresAt != null)
                   _Row(
@@ -180,7 +180,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                   label: _twoFactorEnrolled
                       ? 'Two-Factor Auth (enabled)'
                       : 'Set Up Two-Factor Auth',
-                  iconColor: _twoFactorEnrolled ? ChailColors.success : null,
+                  iconColor: _twoFactorEnrolled ? ChaildColors.success : null,
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -193,12 +193,12 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                     ),
                   ),
                 ),
-                if (ChailAuth.appLockTimeout != null)
+                if (ChaildAuth.appLockTimeout != null)
                   _Row(
                     icon: Icons.timer_outlined,
                     label: 'App Lock Timeout',
                     trailing: Text(
-                      _formatTimeout(ChailAuth.appLockTimeout!),
+                      _formatTimeout(ChaildAuth.appLockTimeout!),
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ),
@@ -263,9 +263,9 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
               children: [
                 _Row(
                   icon: Icons.delete_outline_rounded,
-                  iconColor: ChailColors.error,
+                  iconColor: ChaildColors.error,
                   label: 'Delete Account',
-                  labelColor: ChailColors.error,
+                  labelColor: ChaildColors.error,
                   onTap: () => _confirmDelete(context),
                 ),
               ],
@@ -304,7 +304,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             child: const Text('Delete',
-                style: TextStyle(color: ChailColors.error)),
+                style: TextStyle(color: ChaildColors.error)),
           ),
         ],
       ),
@@ -336,7 +336,7 @@ class _SectionCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(ChailConstants.radiusL),
+        borderRadius: BorderRadius.circular(ChaildConstants.radiusL),
         border: Border.all(color: Theme.of(context).colorScheme.outline),
       ),
       child: Column(
@@ -411,14 +411,14 @@ class _CollapsibleSection extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(ChailConstants.radiusL),
+        borderRadius: BorderRadius.circular(ChaildConstants.radiusL),
         border: Border.all(color: Theme.of(context).colorScheme.outline),
       ),
       child: Column(
         children: [
           InkWell(
             onTap: onToggle,
-            borderRadius: BorderRadius.circular(ChailConstants.radiusL),
+            borderRadius: BorderRadius.circular(ChaildConstants.radiusL),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               child: Row(
@@ -475,7 +475,7 @@ class _Badge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: color.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(ChailConstants.radiusFull),
+        borderRadius: BorderRadius.circular(ChaildConstants.radiusFull),
       ),
       child: Text(label,
           style: TextStyle(

@@ -75,11 +75,11 @@ class _TwoFactorSetupScreenState extends State<TwoFactorSetupScreen> {
       appBar: AppBar(title: const Text('Set Up Two-Factor Auth')),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(ChailConstants.paddingL),
+          padding: const EdgeInsets.all(ChaildConstants.paddingL),
           child: _loading
               ? const Center(child: CircularProgressIndicator())
               : _error != null && _uri == null
-                  ? Center(child: Text(_error!, style: const TextStyle(color: ChailColors.error)))
+                  ? Center(child: Text(_error!, style: const TextStyle(color: ChaildColors.error)))
                   : Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -104,7 +104,7 @@ class _TwoFactorSetupScreenState extends State<TwoFactorSetupScreen> {
                         Text('Enter verification code',
                             style: Theme.of(context).textTheme.titleMedium),
                         const SizedBox(height: 8),
-                        ChailTextField(
+                        ChaildTextField(
                           controller: _codeCtrl,
                           label: '6-digit code',
                           keyboardType: TextInputType.number,
@@ -112,10 +112,10 @@ class _TwoFactorSetupScreenState extends State<TwoFactorSetupScreen> {
                         ),
                         if (_error != null) ...[
                           const SizedBox(height: 8),
-                          Text(_error!, style: const TextStyle(color: ChailColors.error, fontSize: 13)),
+                          Text(_error!, style: const TextStyle(color: ChaildColors.error, fontSize: 13)),
                         ],
                         const SizedBox(height: 24),
-                        ChailButton(
+                        ChaildButton(
                           label: 'Verify and Enable',
                           isLoading: _verifying,
                           onPressed: _verify,
@@ -178,12 +178,12 @@ class _TwoFactorChallengeScreenState extends State<TwoFactorChallengeScreen> {
     return Scaffold(
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(ChailConstants.paddingL),
+          padding: const EdgeInsets.all(ChaildConstants.paddingL),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Icons.lock_rounded, size: 48, color: ChailColors.primary),
+              Icon(Icons.lock_rounded, size: 48, color: ChaildColors.primary),
               const SizedBox(height: 24),
               Text('Two-Factor Authentication',
                   style: Theme.of(context).textTheme.headlineSmall),
@@ -191,7 +191,7 @@ class _TwoFactorChallengeScreenState extends State<TwoFactorChallengeScreen> {
               Text('Enter the code from your authenticator app.',
                   style: Theme.of(context).textTheme.bodyMedium),
               const SizedBox(height: 32),
-              ChailTextField(
+              ChaildTextField(
                 controller: _codeCtrl,
                 label: '6-digit code',
                 keyboardType: TextInputType.number,
@@ -201,10 +201,10 @@ class _TwoFactorChallengeScreenState extends State<TwoFactorChallengeScreen> {
               if (_error != null) ...[
                 const SizedBox(height: 8),
                 Text(_error!,
-                    style: const TextStyle(color: ChailColors.error, fontSize: 13)),
+                    style: const TextStyle(color: ChaildColors.error, fontSize: 13)),
               ],
               const SizedBox(height: 24),
-              ChailButton(
+              ChaildButton(
                 label: 'Verify',
                 isLoading: _verifying,
                 onPressed: _submit,

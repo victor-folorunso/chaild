@@ -6,7 +6,7 @@ class TwoFactorService {
   TwoFactorService._();
   static final instance = TwoFactorService._();
 
-  SupabaseClient get _client => ChailAuth.client;
+  SupabaseClient get _client => ChaildAuth.client;
 
   /// Whether the current user has an active TOTP factor enrolled.
   Future<bool> isEnrolled() async {

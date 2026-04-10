@@ -51,15 +51,15 @@ class UsageTrackingService with WidgetsBindingObserver {
   }
 
   void _sendHeartbeat(int seconds) {
-    final partnerKey = ChailAuth.partnerKey;
+    final partnerKey = ChaildAuth.partnerKey;
     if (partnerKey == null) return;
 
     // Fire-and-forget; errors are logged but not surfaced to the user.
-    ChailAuth.client.functions.invoke(
+    ChaildAuth.client.functions.invoke(
       'record-usage',
       body: '{"partnerKey":"$partnerKey","secondsUsed":$seconds}',
     ).catchError((e) {
-      debugPrint('[ChailAuth] record-usage heartbeat failed: $e');
+      debugPrint('[ChaildAuth] record-usage heartbeat failed: $e');
     });
   }
 }

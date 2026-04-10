@@ -6,24 +6,24 @@ import '../services/biometric_service.dart';
 ///
 /// Place this around the root of your app (inside ProviderScope):
 /// ```dart
-/// ChailAppLock(
+/// ChaildAppLock(
 ///   timeout: Duration(minutes: 5),
 ///   child: MyApp(),
 /// )
 /// ```
 ///
 /// If [timeout] is null or zero, the lock is disabled.
-class ChailAppLock extends StatefulWidget {
+class ChaildAppLock extends StatefulWidget {
   final Widget child;
   final Duration? timeout;
 
-  const ChailAppLock({super.key, required this.child, this.timeout});
+  const ChaildAppLock({super.key, required this.child, this.timeout});
 
   @override
-  State<ChailAppLock> createState() => _ChailAppLockState();
+  State<ChaildAppLock> createState() => _ChaildAppLockState();
 }
 
-class _ChailAppLockState extends State<ChailAppLock>
+class _ChaildAppLockState extends State<ChaildAppLock>
     with WidgetsBindingObserver {
   bool _locked = false;
   bool _authenticating = false;

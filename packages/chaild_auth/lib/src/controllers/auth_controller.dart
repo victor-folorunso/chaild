@@ -10,7 +10,7 @@ import '../services/two_factor_service.dart';
 
 class AuthState {
   final bool isLoading;
-  final ChailUser? user;
+  final ChaildUser? user;
   final String? error;
   /// Non-null when the user has signed in but 2FA challenge is required.
   final String? pendingTwoFactorId;
@@ -27,7 +27,7 @@ class AuthState {
 
   AuthState copyWith({
     bool? isLoading,
-    ChailUser? user,
+    ChaildUser? user,
     String? error,
     String? pendingTwoFactorId,
     bool clearTwoFactor = false,
@@ -161,7 +161,7 @@ class AuthController extends StateNotifier<AuthState> {
 
 class SubscriptionState {
   final bool isLoading;
-  final ChailSubscription? subscription;
+  final ChaildSubscription? subscription;
   final String? error;
 
   const SubscriptionState({
@@ -174,7 +174,7 @@ class SubscriptionState {
 
   SubscriptionState copyWith({
     bool? isLoading,
-    ChailSubscription? subscription,
+    ChaildSubscription? subscription,
     String? error,
   }) =>
       SubscriptionState(

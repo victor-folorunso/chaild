@@ -9,24 +9,24 @@ class SubscriptionService {
 
   /// Check subscription status.
   /// RevenueCat is the primary source; Supabase DB is the fallback.
-  Future<ChailSubscription?> getSubscription() async {
-    final userId = ChailAuth.currentUser?.id;
+  Future<ChaildSubscription?> getSubscription() async {
+    final userId = ChaildAuth.currentUser?.id;
     if (userId == null) return null;
 
     try {
       // ── RevenueCat check ────────────────────────────────────────────────
       final customerInfo = await Purchases.getCustomerInfo();
       final entitlement =
-          customerInfo.entitlements.active[ChailAppEnv.rcEntitlement];
+          customerInfo.entitlements.active[ChaildAppEnv.rcEntitlement];
 
       if (entitlement != null) {
-        return ChailSubscription(
+        return ChaildSubscription(
           id: entitlement.productIdentifier,
           userId: userId,
           status: SubscriptionStatus.active,
           plan: entitlement.periodType == PeriodType.annual
-              ? ChailConstants.planYearly
-              : ChailConstants.planMonthly,
+              ? ChaildConstants.planYearly
+              : ChaildConstants.planMonthly,
           expiresAt: entitlement.expirationDate != null
               ? DateTime.tryParse(entitlement.expirationDate!)
               : null,
@@ -35,8 +35,8 @@ class SubscriptionService {
       }
 
       // ── Supabase fallback ────────────────────────────────────────────────
-      final data = await ChailAuth.client
-          .from(ChailConstants.tableSubscriptions)
+      final data = await ChaildAuth.client
+          .from(ChaildConstants.tableSubscriptions)
           .select()
           .eq('user_id', userId)
           .eq('status', 'active')
@@ -44,7 +44,7 @@ class SubscriptionService {
 
       if (data == null) return null;
 
-      final sub = ChailSubscription.fromMap(data);
+      final sub = ChaildSubscription.fromMap(data);
       if (!sub.isActive) return null;
       return sub;
     } catch (_) {
@@ -64,7 +64,7 @@ class SubscriptionService {
   }
 
   /// Stream that fires on subscription change (auth events only — poll for RC).
-  Stream<ChailSubscription?> get subscriptionStream async* {
+  Stream<ChaildSubscription?> get subscriptionStream async* {
     yield await getSubscription();
   }
 }

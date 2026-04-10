@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// ChailTheme: The single source of truth for all visual styling.
+/// ChaildTheme: The single source of truth for all visual styling.
 ///
 /// Developers can override accent color when initializing:
 /// ```dart
-/// ChailAuth.initialize(accentColor: Colors.blue, ...);
+/// ChaildAuth.initialize(accentColor: Colors.blue, ...);
 /// ```
-class ChailColors {
-  ChailColors._();
+class ChaildColors {
+  ChaildColors._();
 
   // ── Brand ────────────────────────────────────────────────────────────────
   static const Color primary = Color(0xFF6C47FF);
@@ -42,12 +42,12 @@ class ChailColors {
   static const Color warning = Color(0xFFF59E0B);
 }
 
-class ChailTheme {
-  ChailTheme._();
+class ChaildTheme {
+  ChaildTheme._();
 
   static ThemeData dark({Color? accentColor}) {
-    final accent = accentColor ?? ChailColors.primary;
-    final textTheme = _textTheme(ChailColors.textPrimaryDark);
+    final accent = accentColor ?? ChaildColors.primary;
+    final textTheme = _textTheme(ChaildColors.textPrimaryDark);
 
     return ThemeData(
       useMaterial3: true,
@@ -55,39 +55,39 @@ class ChailTheme {
       colorScheme: ColorScheme.dark(
         primary: accent,
         onPrimary: Colors.white,
-        surface: ChailColors.surfaceDark,
-        onSurface: ChailColors.textPrimaryDark,
-        error: ChailColors.error,
-        outline: ChailColors.borderDark,
+        surface: ChaildColors.surfaceDark,
+        onSurface: ChaildColors.textPrimaryDark,
+        error: ChaildColors.error,
+        outline: ChaildColors.borderDark,
       ),
-      scaffoldBackgroundColor: ChailColors.bgDark,
+      scaffoldBackgroundColor: ChaildColors.bgDark,
       textTheme: textTheme,
       inputDecorationTheme: _inputTheme(
-        border: ChailColors.borderDark,
-        fill: ChailColors.surfaceDark2,
-        hint: ChailColors.textSecondaryDark,
+        border: ChaildColors.borderDark,
+        fill: ChaildColors.surfaceDark2,
+        hint: ChaildColors.textSecondaryDark,
       ),
       elevatedButtonTheme: _elevatedButtonTheme(accent),
-      outlinedButtonTheme: _outlinedButtonTheme(accent, ChailColors.borderDark),
+      outlinedButtonTheme: _outlinedButtonTheme(accent, ChaildColors.borderDark),
       textButtonTheme: _textButtonTheme(accent),
       dividerTheme: const DividerThemeData(
-        color: ChailColors.borderDark,
+        color: ChaildColors.borderDark,
         thickness: 1,
       ),
       cardTheme: CardTheme(
-        color: ChailColors.surfaceDark,
+        color: ChaildColors.surfaceDark,
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: ChailColors.borderDark),
+          side: const BorderSide(color: ChaildColors.borderDark),
         ),
       ),
     );
   }
 
   static ThemeData light({Color? accentColor}) {
-    final accent = accentColor ?? ChailColors.primary;
-    final textTheme = _textTheme(ChailColors.textPrimaryLight);
+    final accent = accentColor ?? ChaildColors.primary;
+    final textTheme = _textTheme(ChaildColors.textPrimaryLight);
 
     return ThemeData(
       useMaterial3: true,
@@ -95,31 +95,31 @@ class ChailTheme {
       colorScheme: ColorScheme.light(
         primary: accent,
         onPrimary: Colors.white,
-        surface: ChailColors.surfaceLight,
-        onSurface: ChailColors.textPrimaryLight,
-        error: ChailColors.error,
-        outline: ChailColors.borderLight,
+        surface: ChaildColors.surfaceLight,
+        onSurface: ChaildColors.textPrimaryLight,
+        error: ChaildColors.error,
+        outline: ChaildColors.borderLight,
       ),
-      scaffoldBackgroundColor: ChailColors.bgLight,
+      scaffoldBackgroundColor: ChaildColors.bgLight,
       textTheme: textTheme,
       inputDecorationTheme: _inputTheme(
-        border: ChailColors.borderLight,
-        fill: ChailColors.surfaceLight2,
-        hint: ChailColors.textSecondaryLight,
+        border: ChaildColors.borderLight,
+        fill: ChaildColors.surfaceLight2,
+        hint: ChaildColors.textSecondaryLight,
       ),
       elevatedButtonTheme: _elevatedButtonTheme(accent),
-      outlinedButtonTheme: _outlinedButtonTheme(accent, ChailColors.borderLight),
+      outlinedButtonTheme: _outlinedButtonTheme(accent, ChaildColors.borderLight),
       textButtonTheme: _textButtonTheme(accent),
       dividerTheme: const DividerThemeData(
-        color: ChailColors.borderLight,
+        color: ChaildColors.borderLight,
         thickness: 1,
       ),
       cardTheme: CardTheme(
-        color: ChailColors.surfaceLight,
+        color: ChaildColors.surfaceLight,
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: ChailColors.borderLight),
+          side: const BorderSide(color: ChaildColors.borderLight),
         ),
       ),
     );
@@ -173,11 +173,11 @@ class ChailTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: ChailColors.primary, width: 1.5),
+          borderSide: const BorderSide(color: ChaildColors.primary, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: ChailColors.error),
+          borderSide: const BorderSide(color: ChaildColors.error),
         ),
       );
 

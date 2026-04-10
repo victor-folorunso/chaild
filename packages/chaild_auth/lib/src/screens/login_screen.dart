@@ -11,7 +11,7 @@ import 'forgot_password_screen.dart';
 import 'signup_screen.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
-  final void Function(ChailUser user) onAuthenticated;
+  final void Function(ChaildUser user) onAuthenticated;
 
   const LoginScreen({super.key, required this.onAuthenticated});
 
@@ -56,12 +56,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final auth = ref.watch(authControllerProvider);
-    final appName = 'Sign in'; // could use ChailAuth.appName
+    final appName = 'Sign in'; // could use ChaildAuth.appName
 
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(ChailConstants.paddingL),
+          padding: const EdgeInsets.all(ChaildConstants.paddingL),
           child: Form(
             key: _formKey,
             child: Column(
@@ -70,7 +70,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 const SizedBox(height: 40),
 
                 // ── Logo / Brand ─────────────────────────────────────────
-                _ChailLogo(),
+                _ChaildLogo(),
                 const SizedBox(height: 32),
 
                 Text(
@@ -91,7 +91,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   _ErrorBanner(auth.error!),
 
                 // ── Fields ───────────────────────────────────────────────
-                ChailTextField(
+                ChaildTextField(
                   label: 'Email',
                   hint: 'you@example.com',
                   controller: _email,
@@ -106,7 +106,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                ChailTextField(
+                ChaildTextField(
                   label: 'Password',
                   hint: '••••••••',
                   controller: _password,
@@ -134,7 +134,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 const SizedBox(height: 8),
 
                 // ── Sign In Button ───────────────────────────────────────
-                ChailButton(
+                ChaildButton(
                   label: 'Sign In',
                   isLoading: auth.isLoading,
                   onPressed: _signIn,
@@ -142,18 +142,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 const SizedBox(height: 24),
 
                 // ── Divider ──────────────────────────────────────────────
-                const ChailDividerOr(),
+                const ChaildDividerOr(),
                 const SizedBox(height: 24),
 
                 // ── Social Buttons ───────────────────────────────────────
                 if (Platform.isIOS) ...[
-                  ChailAppleButton(
+                  ChaildAppleButton(
                     isLoading: auth.isLoading,
                     onPressed: _signInApple,
                   ),
                   const SizedBox(height: 12),
                 ],
-                ChailGoogleButton(
+                ChaildGoogleButton(
                   isLoading: auth.isLoading,
                   onPressed: _signInGoogle,
                 ),
@@ -190,7 +190,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
 // ── Shared small widgets ──────────────────────────────────────────────────────
 
-class _ChailLogo extends StatelessWidget {
+class _ChaildLogo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -199,7 +199,7 @@ class _ChailLogo extends StatelessWidget {
           width: 36,
           height: 36,
           decoration: BoxDecoration(
-            color: ChailColors.primary,
+            color: ChaildColors.primary,
             borderRadius: BorderRadius.circular(10),
           ),
           child: const Center(
@@ -232,17 +232,17 @@ class _ErrorBanner extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: ChailColors.errorSurface,
+        color: ChaildColors.errorSurface,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: ChailColors.error.withOpacity(0.4)),
+        border: Border.all(color: ChaildColors.error.withOpacity(0.4)),
       ),
       child: Row(
         children: [
-          const Icon(Icons.error_outline, color: ChailColors.error, size: 16),
+          const Icon(Icons.error_outline, color: ChaildColors.error, size: 16),
           const SizedBox(width: 8),
           Expanded(
             child: Text(message,
-                style: const TextStyle(color: ChailColors.error, fontSize: 13)),
+                style: const TextStyle(color: ChaildColors.error, fontSize: 13)),
           ),
         ],
       ),

@@ -6,7 +6,7 @@ import 'package:chaild_storage/chaild_storage.dart';
 /// TEST RUNNER for the chaild_auth package.
 ///
 /// Replace the RC key below with your actual RevenueCat key.
-/// Everything else (Supabase, Flutterwave) is baked into ChailAppEnv.
+/// Everything else (Supabase, Flutterwave) is baked into ChaildAppEnv.
 /// ─────────────────────────────────────────────────────────────────────────────
 
 /// RevenueCat public key injected at build time.
@@ -18,30 +18,30 @@ const String _revenueCatApiKey = String.fromEnvironment('RC_KEY');
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await ChailAuth.initialize(
-    partnerKey: ChailAppEnv.internalPartnerKey,
+  await ChaildAuth.initialize(
+    partnerKey: ChaildAppEnv.internalPartnerKey,
     revenueCatApiKey: _revenueCatApiKey,
     appName: 'Chaild',
   );
 
   await ChaildStorage.initialize(namespace: 'chaild_test');
 
-  runApp(const ChailTestApp());
+  runApp(const ChaildTestApp());
 }
 
-class ChailTestApp extends StatelessWidget {
-  const ChailTestApp({super.key});
+class ChaildTestApp extends StatelessWidget {
+  const ChaildTestApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Chaild Auth Test',
       debugShowCheckedModeBanner: false,
-      theme: ChailTheme.light(),
-      darkTheme: ChailTheme.dark(),
+      theme: ChaildTheme.light(),
+      darkTheme: ChaildTheme.dark(),
       themeMode: ThemeMode.dark,
-      home: ChailAuthFlow(
-        onAuthenticated: (ChailUser user) {
+      home: ChaildAuthFlow(
+        onAuthenticated: (ChaildUser user) {
           debugPrint('✅ Signed in: ${user.email}');
         },
       ),

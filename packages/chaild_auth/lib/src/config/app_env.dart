@@ -1,5 +1,5 @@
 /// ─────────────────────────────────────────────────────────────────────────────
-/// ChailAppEnv — Chaild's own credentials, baked into the SDK.
+/// ChaildAppEnv — Chaild's own credentials, baked into the SDK.
 ///
 /// WHO MANAGES THESE: You (the Chaild platform owner).
 /// WHO SEES THESE: They ship inside the compiled SDK package.
@@ -32,8 +32,8 @@
 ///   (SUPABASE_SERVICE_ROLE_KEY and SUPABASE_URL are auto-available in functions)
 ///
 /// ─────────────────────────────────────────────────────────────────────────────
-class ChailAppEnv {
-  ChailAppEnv._();
+class ChaildAppEnv {
+  ChaildAppEnv._();
 
   // ── Your Supabase project credentials ────────────────────────────────────
   // supabase.com → your project → Settings → API

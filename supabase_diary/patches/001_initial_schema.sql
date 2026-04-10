@@ -9,7 +9,7 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 -- ────────────────────────────────────────────────────────────
 -- PARTNERS
 -- Developers who integrate chaild_auth into their apps.
--- Each partner gets a unique key passed to ChailAuth.initialize().
+-- Each partner gets a unique key passed to ChaildAuth.initialize().
 -- Revenue share is calculated per referral attribution.
 -- ────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS partners (

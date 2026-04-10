@@ -6,11 +6,11 @@ import '../controllers/auth_controller.dart';
 import '../models/chaild_user.dart';
 import '../widgets/chaild_button.dart';
 import '../widgets/chaild_text_field.dart';
-import 'login_screen.dart' show _ChailLogo, _ErrorBanner;
+import 'login_screen.dart' show _ChaildLogo, _ErrorBanner;
 import 'login_screen.dart';
 
 class SignupScreen extends ConsumerStatefulWidget {
-  final void Function(ChailUser user) onAuthenticated;
+  final void Function(ChaildUser user) onAuthenticated;
 
   const SignupScreen({super.key, required this.onAuthenticated});
 
@@ -64,14 +64,14 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(ChailConstants.paddingL),
+          padding: const EdgeInsets.all(ChaildConstants.paddingL),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 40),
-                _ChailLogo(),
+                _ChaildLogo(),
                 const SizedBox(height: 32),
 
                 Text('Create account',
@@ -92,17 +92,17 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   _ErrorBanner(auth.error!),
 
                 // ── Social first (lower friction) ────────────────────────
-                ChailAppleButton(
+                ChaildAppleButton(
                     isLoading: auth.isLoading, onPressed: _signInApple),
                 const SizedBox(height: 12),
-                ChailGoogleButton(
+                ChaildGoogleButton(
                     isLoading: auth.isLoading, onPressed: _signInGoogle),
                 const SizedBox(height: 24),
-                const ChailDividerOr(),
+                const ChaildDividerOr(),
                 const SizedBox(height: 24),
 
                 // ── Fields ───────────────────────────────────────────────
-                ChailTextField(
+                ChaildTextField(
                   label: 'Full name',
                   hint: 'Your name',
                   controller: _name,
@@ -113,7 +113,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                ChailTextField(
+                ChaildTextField(
                   label: 'Email',
                   hint: 'you@example.com',
                   controller: _email,
@@ -128,7 +128,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                ChailTextField(
+                ChaildTextField(
                   label: 'Password',
                   hint: 'Min. 8 characters',
                   controller: _password,
@@ -143,7 +143,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                ChailTextField(
+                ChaildTextField(
                   label: 'Confirm password',
                   hint: '••••••••',
                   controller: _confirm,
@@ -158,7 +158,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                ChailButton(
+                ChaildButton(
                   label: 'Create Account',
                   isLoading: auth.isLoading,
                   onPressed: _signUp,

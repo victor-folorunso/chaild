@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class ChailTextField extends StatefulWidget {
+class ChaildTextField extends StatefulWidget {
   final String label;
   final String? hint;
   final TextEditingController? controller;
@@ -14,7 +14,7 @@ class ChailTextField extends StatefulWidget {
   final bool autofocus;
   final bool enabled;
 
-  const ChailTextField({
+  const ChaildTextField({
     super.key,
     required this.label,
     this.hint,
@@ -31,10 +31,10 @@ class ChailTextField extends StatefulWidget {
   });
 
   @override
-  State<ChailTextField> createState() => _ChailTextFieldState();
+  State<ChaildTextField> createState() => _ChaildTextFieldState();
 }
 
-class _ChailTextFieldState extends State<ChailTextField> {
+class _ChaildTextFieldState extends State<ChaildTextField> {
   bool _obscured = true;
 
   @override
@@ -81,8 +81,8 @@ class _ChailTextFieldState extends State<ChailTextField> {
 
 // ── Divider with label ────────────────────────────────────────────────────────
 
-class ChailDividerOr extends StatelessWidget {
-  const ChailDividerOr({super.key});
+class ChaildDividerOr extends StatelessWidget {
+  const ChaildDividerOr({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -12,7 +12,7 @@ class AuthService {
   AuthService._();
   static final AuthService instance = AuthService._();
 
-  SupabaseClient get _client => ChailAuth.client;
+  SupabaseClient get _client => ChaildAuth.client;
 
   // ── Email / Password ─────────────────────────────────────────────────────
 
@@ -70,7 +70,7 @@ class AuthService {
           .join(' ');
       if (name.isNotEmpty) {
         await _client
-            .from(ChailConstants.tableProfiles)
+            .from(ChaildConstants.tableProfiles)
             .update({'name': name})
             .eq('id', response.user!.id);
       }
@@ -111,14 +111,14 @@ class AuthService {
 
   // ── Profile ───────────────────────────────────────────────────────────────
 
-  Future<ChailUser?> getProfile(String userId) async {
+  Future<ChaildUser?> getProfile(String userId) async {
     final data = await _client
-        .from(ChailConstants.tableProfiles)
+        .from(ChaildConstants.tableProfiles)
         .select()
         .eq('id', userId)
         .maybeSingle();
     if (data == null) return null;
-    return ChailUser.fromMap(data);
+    return ChaildUser.fromMap(data);
   }
 
   Future<void> updateProfile(String userId, {String? name, String? avatarUrl}) async {
@@ -127,11 +127,11 @@ class AuthService {
     };
     if (name != null) updates['name'] = name;
     if (avatarUrl != null) updates['avatar_url'] = avatarUrl;
-    await _client.from(ChailConstants.tableProfiles).update(updates).eq('id', userId);
+    await _client.from(ChaildConstants.tableProfiles).update(updates).eq('id', userId);
   }
 
   Future<void> deleteAccount() async {
-    final userId = ChailAuth.currentUser?.id;
+    final userId = ChaildAuth.currentUser?.id;
     if (userId == null) return;
     // Supabase: deleting the auth user cascades to profiles via FK
     await _client.rpc('delete_user'); // requires a custom RPC function
@@ -149,8 +149,8 @@ class AuthService {
   /// Calls the attribute-user edge function to stamp the partner key.
   /// Validates partner_key + bundle_id server-side before writing.
   Future<void> _attributeUser(String userId) async {
-    final partnerKey = ChailAuth.partnerKey;
-    final bundleId = ChailAuth.bundleId;
+    final partnerKey = ChaildAuth.partnerKey;
+    final bundleId = ChaildAuth.bundleId;
     if (partnerKey == null || bundleId == null) return;
 
     try {
@@ -159,7 +159,7 @@ class AuthService {
         body: jsonEncode({'partnerKey': partnerKey, 'bundleId': bundleId}),
       );
     } catch (e) {
-      debugPrint('[ChailAuth] attribute-user failed: $e');
+      debugPrint('[ChaildAuth] attribute-user failed: $e');
     }
   }
 }

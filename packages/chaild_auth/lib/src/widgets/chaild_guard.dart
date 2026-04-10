@@ -8,7 +8,7 @@ import '../screens/subscription_screen.dart';
 /// Drop this anywhere in your widget tree to protect content.
 ///
 /// ```dart
-/// ChailGuard(child: MyProtectedScreen())
+/// ChaildGuard(child: MyProtectedScreen())
 /// ```
 ///
 /// - If user is not signed in → shows sign in/up flow
@@ -17,12 +17,12 @@ import '../screens/subscription_screen.dart';
 ///
 /// [requireSubscription] defaults to true. Set to false to only
 /// require authentication (no paywall).
-class ChailGuard extends ConsumerStatefulWidget {
+class ChaildGuard extends ConsumerStatefulWidget {
   final Widget child;
   final bool requireSubscription;
   final void Function(dynamic user)? onAuthenticated;
 
-  const ChailGuard({
+  const ChaildGuard({
     super.key,
     required this.child,
     this.requireSubscription = true,
@@ -30,10 +30,10 @@ class ChailGuard extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<ChailGuard> createState() => _ChailGuardState();
+  ConsumerState<ChaildGuard> createState() => _ChaildGuardState();
 }
 
-class _ChailGuardState extends ConsumerState<ChailGuard> {
+class _ChaildGuardState extends ConsumerState<ChaildGuard> {
   @override
   void initState() {
     super.initState();
@@ -49,7 +49,7 @@ class _ChailGuardState extends ConsumerState<ChailGuard> {
 
     // ── Not signed in → auth flow ──────────────────────────────────────────
     if (!authState.isSignedIn) {
-      return ChailAuthFlow(
+      return ChaildAuthFlow(
         onAuthenticated: (user) {
           widget.onAuthenticated?.call(user);
           ref.read(subscriptionControllerProvider.notifier).load();
@@ -76,7 +76,7 @@ class _ChailGuardState extends ConsumerState<ChailGuard> {
 
     // ── All good → show the actual app ────────────────────────────────────
     // ── ID verification scaffold check ────────────────────────────────────
-    if (ChailAuth.requiresIdVerification) {
+    if (ChaildAuth.requiresIdVerification) {
       // Placeholder: when a KYC provider is integrated, replace this screen
       // with the real verification flow. The flag + gating logic are in place.
       return const Scaffold(
