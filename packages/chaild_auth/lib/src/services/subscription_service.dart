@@ -1,6 +1,7 @@
 import 'package:purchases_flutter/purchases_flutter.dart';
 import '../chaild_auth_config.dart';
 import '../config/app_env.dart';
+import '../config/chaild_constants.dart';
 import '../models/chaild_subscription.dart';
 
 class SubscriptionService {

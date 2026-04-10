@@ -13,6 +13,7 @@ class ChaildTextField extends StatefulWidget {
   final void Function(String)? onChanged;
   final bool autofocus;
   final bool enabled;
+  final int? maxLength;
 
   const ChaildTextField({
     super.key,
@@ -28,6 +29,7 @@ class ChaildTextField extends StatefulWidget {
     this.onChanged,
     this.autofocus = false,
     this.enabled = true,
+    this.maxLength,
   });
 
   @override
@@ -59,6 +61,7 @@ class _ChaildTextFieldState extends State<ChaildTextField> {
           onChanged: widget.onChanged,
           autofocus: widget.autofocus,
           enabled: widget.enabled,
+          maxLength: widget.maxLength,
           style: Theme.of(context).textTheme.bodyLarge,
           decoration: InputDecoration(
             hintText: widget.hint,

@@ -145,6 +145,11 @@ class AuthController extends StateNotifier<AuthState> {
     state = const AuthState();
   }
 
+  Future<void> deleteAccount() async {
+    await AuthService.instance.deleteAccount();
+    state = const AuthState();
+  }
+
   void clearError() => state = state.copyWith(error: null);
 
   String _friendly(Object e) {
