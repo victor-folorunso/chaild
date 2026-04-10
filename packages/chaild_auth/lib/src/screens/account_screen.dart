@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../chaild_auth_config.dart';
 import '../config/chaild_constants.dart';
 import '../config/chaild_theme.dart';
 import '../controllers/auth_controller.dart';
@@ -21,6 +22,9 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
   bool _biometricAvailable = false;
   bool _biometricEnabled = false;
   bool _twoFactorEnrolled = false;
+  bool _sectionSecurityOpen = false;
+  bool _sectionSubOpen = true;
+  bool _sectionAboutOpen = false;
 
   @override
   void initState() {
@@ -111,13 +115,17 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
 
             const SizedBox(height: 32),
 
-            // ── Subscription Status ────────────────────────────────────────
-            _SectionCard(
+            // ── Subscription (collapsible) ─────────────────────────────────
+            _CollapsibleSection(
+              title: 'Subscription',
+              icon: Icons.bolt_rounded,
+              isOpen: _sectionSubOpen,
+              onToggle: () => setState(() => _sectionSubOpen = !_sectionSubOpen),
               children: [
                 _Row(
                   icon: Icons.bolt_rounded,
                   iconColor: ChailColors.primary,
-                  label: 'Subscription',
+                  label: 'Status',
                   trailing: sub.isActive
                       ? _Badge('Active', ChailColors.success)
                       : _Badge('Inactive', ChailColors.error),
@@ -144,12 +152,16 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
               ],
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
 
-            // ── Security ───────────────────────────────────────────────────
-            if (_biometricAvailable) ...[
-              _SectionCard(
-                children: [
+            // ── Security (collapsible) ─────────────────────────────────────
+            _CollapsibleSection(
+              title: 'Security',
+              icon: Icons.shield_outlined,
+              isOpen: _sectionSecurityOpen,
+              onToggle: () => setState(() => _sectionSecurityOpen = !_sectionSecurityOpen),
+              children: [
+                if (_biometricAvailable)
                   ListTile(
                     leading: Icon(
                       Icons.fingerprint,
@@ -163,52 +175,63 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                       onChanged: _toggleBiometric,
                     ),
                   ),
-                  _Row(
-                    icon: Icons.qr_code_scanner_rounded,
-                    label: _twoFactorEnrolled
-                        ? 'Two-Factor Auth (enabled)'
-                        : 'Set Up Two-Factor Auth',
-                    iconColor: _twoFactorEnrolled ? ChailColors.success : null,
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => TwoFactorSetupScreen(
-                          onDone: () {
-                            Navigator.pop(context);
-                            _loadTwoFactorState();
-                          },
-                        ),
+                _Row(
+                  icon: Icons.qr_code_scanner_rounded,
+                  label: _twoFactorEnrolled
+                      ? 'Two-Factor Auth (enabled)'
+                      : 'Set Up Two-Factor Auth',
+                  iconColor: _twoFactorEnrolled ? ChailColors.success : null,
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => TwoFactorSetupScreen(
+                        onDone: () {
+                          Navigator.pop(context);
+                          _loadTwoFactorState();
+                        },
                       ),
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 16),
-            ] else ...[
-              _SectionCard(
-                children: [
-                  _Row(
-                    icon: Icons.qr_code_scanner_rounded,
-                    label: _twoFactorEnrolled
-                        ? 'Two-Factor Auth (enabled)'
-                        : 'Set Up Two-Factor Auth',
-                    iconColor: _twoFactorEnrolled ? ChailColors.success : null,
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => TwoFactorSetupScreen(
-                          onDone: () {
-                            Navigator.pop(context);
-                            _loadTwoFactorState();
-                          },
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 12),
+
+            // ── About (collapsible) ────────────────────────────────────────
+            _CollapsibleSection(
+              title: 'About',
+              icon: Icons.info_outline_rounded,
+              isOpen: _sectionAboutOpen,
+              onToggle: () => setState(() => _sectionAboutOpen = !_sectionAboutOpen),
+              children: [
+                _Row(
+                  icon: Icons.language_rounded,
+                  label: 'Chaild Website',
+                  onTap: () {},
+                ),
+                _Row(
+                  icon: Icons.code_rounded,
+                  label: 'Developer Portal',
+                  onTap: () {},
+                ),
+                _Row(
+                  icon: Icons.tag_rounded,
+                  label: 'Version',
+                  trailing: Text(
+                    '1.0.0',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withOpacity(0.5),
                         ),
-                      ),
-                    ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 16),
-            ],
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 24),
 
             // ── Account Actions ────────────────────────────────────────────
             _SectionCard(
@@ -349,6 +372,79 @@ class _Row extends StatelessWidget {
                   .onSurface
                   .withOpacity(0.3))
           : null),
+    );
+  }
+}
+
+class _CollapsibleSection extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  final bool isOpen;
+  final VoidCallback onToggle;
+  final List<Widget> children;
+
+  const _CollapsibleSection({
+    required this.title,
+    required this.icon,
+    required this.isOpen,
+    required this.onToggle,
+    required this.children,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(ChailConstants.radiusL),
+        border: Border.all(color: Theme.of(context).colorScheme.outline),
+      ),
+      child: Column(
+        children: [
+          InkWell(
+            onTap: onToggle,
+            borderRadius: BorderRadius.circular(ChailConstants.radiusL),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              child: Row(
+                children: [
+                  Icon(icon,
+                      size: 20,
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withOpacity(0.6)),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Text(title,
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyMedium
+                            ?.copyWith(fontWeight: FontWeight.w600)),
+                  ),
+                  Icon(
+                    isOpen
+                        ? Icons.keyboard_arrow_up_rounded
+                        : Icons.keyboard_arrow_down_rounded,
+                    size: 20,
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withOpacity(0.4),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (isOpen) ...[
+            const Divider(height: 1),
+            ...children
+                .expand((w) => [w, const Divider(height: 1, indent: 52)])
+                .toList()
+              ..removeLast(),
+          ],
+        ],
+      ),
     );
   }
 }
