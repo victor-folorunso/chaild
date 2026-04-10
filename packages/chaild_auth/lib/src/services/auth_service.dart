@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
@@ -26,7 +27,7 @@ class AuthService {
       data: {'full_name': name},
     );
     if (response.user != null) {
-      await _setPartnerKey(response.user!.id);
+      await _attributeUser(response.user!.id);
     }
     return response;
   }
@@ -62,7 +63,7 @@ class AuthService {
     );
 
     if (response.user != null) {
-      await _setPartnerKey(response.user!.id);
+      await _attributeUser(response.user!.id);
       // Update name from Apple if available
       final name = [credential.givenName, credential.familyName]
           .where((s) => s != null && s.isNotEmpty)
@@ -99,7 +100,7 @@ class AuthService {
     );
 
     if (response.user != null) {
-      await _setPartnerKey(response.user!.id);
+      await _attributeUser(response.user!.id);
     }
     return response;
   }
@@ -145,29 +146,20 @@ class AuthService {
 
   // ── Private ───────────────────────────────────────────────────────────────
 
-  /// Stamps the partner key on a new user's profile.
-  Future<void> _setPartnerKey(String userId) async {
+  /// Calls the attribute-user edge function to stamp the partner key.
+  /// Validates partner_key + bundle_id server-side before writing.
+  Future<void> _attributeUser(String userId) async {
     final partnerKey = ChailAuth.partnerKey;
-    if (partnerKey == null) return;
+    final bundleId = ChailAuth.bundleId;
+    if (partnerKey == null || bundleId == null) return;
 
-    // Only set once — don't overwrite if already set
-    final existing = await _client
-        .from(ChailConstants.tableProfiles)
-        .select('partner_key')
-        .eq('id', userId)
-        .maybeSingle();
-
-    if (existing != null && existing['partner_key'] == null) {
-      await _client
-          .from(ChailConstants.tableProfiles)
-          .update({'partner_key': partnerKey})
-          .eq('id', userId);
-
-      // Create referral record
-      await _client.from(ChailConstants.tableReferrals).insert({
-        'partner_key': partnerKey,
-        'referred_user_id': userId,
-      }).onConflict('referred_user_id').ignoreDuplicates();
+    try {
+      await _client.functions.invoke(
+        'attribute-user',
+        body: jsonEncode({'partnerKey': partnerKey, 'bundleId': bundleId}),
+      );
+    } catch (e) {
+      debugPrint('[ChailAuth] attribute-user failed: $e');
     }
   }
 }

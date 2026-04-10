@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'config/app_env.dart';
@@ -39,6 +40,7 @@ class ChailAuth {
   static bool _initialized = false;
   static Duration? _appLockTimeout;
   static bool _requiresIdVerification = false;
+  static String? _bundleId;
 
   static String? get partnerKey => _partnerKey;
   static String? get appName => _appName;
@@ -46,6 +48,7 @@ class ChailAuth {
   static bool get isInitialized => _initialized;
   static Duration? get appLockTimeout => _appLockTimeout;
   static bool get requiresIdVerification => _requiresIdVerification;
+  static String? get bundleId => _bundleId;
 
   /// Initialize ChailAuth. Call once in main() before runApp().
   ///
@@ -80,11 +83,15 @@ class ChailAuth {
       PurchasesConfiguration(revenueCatApiKey),
     );
 
+    // Read bundle ID from the host app at runtime
+    final packageInfo = await PackageInfo.fromPlatform();
+
     _partnerKey = partnerKey;
     _appName = appName;
     _accentColor = accentColor;
     _appLockTimeout = appLockTimeout;
     _requiresIdVerification = requiresIdVerification;
+    _bundleId = packageInfo.packageName;
     _initialized = true;
   }
 

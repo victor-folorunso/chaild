@@ -28,6 +28,9 @@ dependencies:
   # Secure token storage
   flutter_secure_storage: ^9.2.4
 
+  # Device info
+  package_info_plus: ^8.1.1
+
   # Security
   local_auth: ^2.3.0
   qr_flutter: ^4.1.0
