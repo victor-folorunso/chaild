@@ -39,6 +39,7 @@ export 'src/services/subscription_service.dart';
 export 'src/services/payment_service.dart';
 export 'src/services/biometric_service.dart';
 export 'src/services/two_factor_service.dart';
+export 'src/services/usage_tracking_service.dart';
 
 // ── Screens (use directly for custom flows) ───────────────────────────────────
 export 'src/screens/chaild_auth_flow.dart';

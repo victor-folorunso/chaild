@@ -3,6 +3,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'config/app_env.dart';
+import 'services/usage_tracking_service.dart';
 
 /// ChailAuth — the SDK entry point.
 ///
@@ -93,6 +94,9 @@ class ChailAuth {
     _requiresIdVerification = requiresIdVerification;
     _bundleId = packageInfo.packageName;
     _initialized = true;
+
+    // Start usage tracking — sends heartbeats to record-usage on background
+    UsageTrackingService.instance.attach();
   }
 
   static SupabaseClient get client {
