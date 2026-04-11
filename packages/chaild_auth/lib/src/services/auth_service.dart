@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
@@ -156,7 +155,7 @@ class AuthService {
     try {
       await _client.functions.invoke(
         'attribute-user',
-        body: jsonEncode({'partnerKey': partnerKey, 'bundleId': bundleId}),
+        body: {'partnerKey': partnerKey, 'bundleId': bundleId},
       );
     } catch (e) {
       debugPrint('[ChaildAuth] attribute-user failed: $e');

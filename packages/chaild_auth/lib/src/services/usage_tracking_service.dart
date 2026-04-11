@@ -57,7 +57,7 @@ class UsageTrackingService with WidgetsBindingObserver {
     // Fire-and-forget; errors are logged but not surfaced to the user.
     ChaildAuth.client.functions.invoke(
       'record-usage',
-      body: '{"partnerKey":"$partnerKey","secondsUsed":$seconds}',
+      body: {'partnerKey': partnerKey, 'secondsUsed': seconds},
     ).catchError((e) {
       debugPrint('[ChaildAuth] record-usage heartbeat failed: $e');
     });
