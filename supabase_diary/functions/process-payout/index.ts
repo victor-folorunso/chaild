@@ -12,7 +12,7 @@ const FW_SECRET_KEY = Deno.env.get("FLUTTERWAVE_SECRET_KEY")!;
 const CRYPTO_API_KEY = Deno.env.get("CRYPTO_PAYOUT_API_KEY") ?? "";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const MIN_PAYOUT_USD = 15;
+const MIN_PAYOUT_NGN = 25_000; // ≈ $15 USD — earnings are stored in NGN
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
@@ -34,7 +34,7 @@ serve(async (req) => {
 
   for (const partner of (partners ?? [])) {
     const unpaid = (partner.total_earned ?? 0) - (partner.total_paid_out ?? 0);
-    if (unpaid < MIN_PAYOUT_USD) continue;
+    if (unpaid < MIN_PAYOUT_NGN) continue;
 
     // Create payout record
     const { data: payout, error: payoutError } = await supabase
@@ -138,7 +138,7 @@ async function processCryptoPayout(partner: any, payout: any, unpaid: number, re
       body: JSON.stringify({
         to_address: address,
         network,
-        amount_usd: unpaid,
+        amount_ngn: unpaid,  // earnings are accumulated in NGN
         reference,
         note: `Chaild partner payout - ${partner.name}`,
       }),
