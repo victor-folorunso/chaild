@@ -133,11 +133,11 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
         setState(() => _isLoading = false);
         widget.onSubscribed?.call();
       }
-    } on PurchasesErrorCode catch (e) {
-      if (e == PurchasesErrorCode.purchaseCancelledError) {
+    } on PurchasesError catch (e) {
+      if (e.code == PurchasesErrorCode.purchaseCancelledError) {
         // User backed out — silent.
       } else {
-        _showError('Purchase failed: ${e.name}');
+        _showError('Purchase failed: ${e.message}');
       }
       if (mounted) setState(() => _isLoading = false);
     } catch (e) {
