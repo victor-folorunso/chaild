@@ -4,6 +4,7 @@ class ChaildUser {
   final String? name;
   final String? avatarUrl;
   final String? partnerKey; // which developer referred this user
+  final bool idVerified;
   final DateTime createdAt;
 
   const ChaildUser({
@@ -12,6 +13,7 @@ class ChaildUser {
     this.name,
     this.avatarUrl,
     this.partnerKey,
+    this.idVerified = false,
     required this.createdAt,
   });
 
@@ -22,6 +24,7 @@ class ChaildUser {
       name: map['name'] as String?,
       avatarUrl: map['avatar_url'] as String?,
       partnerKey: map['partner_key'] as String?,
+      idVerified: map['id_verified'] as bool? ?? false,
       createdAt: DateTime.parse(map['created_at'] as String),
     );
   }

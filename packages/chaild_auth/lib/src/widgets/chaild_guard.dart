@@ -4,6 +4,7 @@ import '../chaild_auth_config.dart';
 import '../controllers/auth_controller.dart';
 import '../screens/chaild_auth_flow.dart';
 import '../screens/subscription_screen.dart';
+import '../services/auth_service.dart';
 
 /// Drop this anywhere in your widget tree to protect content.
 ///
@@ -34,12 +35,23 @@ class ChaildGuard extends ConsumerStatefulWidget {
 }
 
 class _ChaildGuardState extends ConsumerState<ChaildGuard> {
+  bool? _idVerified; // null = not yet checked
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(subscriptionControllerProvider.notifier).load();
+      _loadIdVerification();
     });
+  }
+
+  Future<void> _loadIdVerification() async {
+    if (!ChaildAuth.requiresIdVerification) return;
+    final userId = AuthService.instance.currentUserId;
+    if (userId == null) return;
+    final profile = await AuthService.instance.getProfile(userId);
+    if (mounted) setState(() => _idVerified = profile?.idVerified ?? false);
   }
 
   @override
@@ -75,36 +87,41 @@ class _ChaildGuardState extends ConsumerState<ChaildGuard> {
     }
 
     // ── All good → show the actual app ────────────────────────────────────
-    // ── ID verification scaffold check ────────────────────────────────────
+    // ── ID verification check ──────────────────────────────────────────────
     if (ChaildAuth.requiresIdVerification) {
-      // Placeholder: when a KYC provider is integrated, replace this screen
-      // with the real verification flow. The flag + gating logic are in place.
-      return const Scaffold(
-        body: SafeArea(
-          child: Center(
-            child: Padding(
-              padding: EdgeInsets.all(32),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.verified_user_outlined, size: 64, color: Colors.grey),
-                  SizedBox(height: 16),
-                  Text('Identity Verification Required',
+      // Still loading the profile
+      if (_idVerified == null) {
+        return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      }
+      // Profile loaded — only block if not yet verified
+      if (!_idVerified!) {
+        return const Scaffold(
+          body: SafeArea(
+            child: Center(
+              child: Padding(
+                padding: EdgeInsets.all(32),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.verified_user_outlined, size: 64, color: Colors.grey),
+                    SizedBox(height: 16),
+                    Text('Identity Verification Required',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+                    SizedBox(height: 8),
+                    Text(
+                      'This app requires identity verification. '
+                      'This feature will be available soon.',
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
-                  SizedBox(height: 8),
-                  Text(
-                    'This app requires identity verification. '
-                    'This feature will be available soon.',
-                    textAlign: TextAlign.center,
-                  ),
-                ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
-        ),
-      );
-    }
+        );
+      } // end !_idVerified
+    } // end requiresIdVerification
 
     return widget.child;
   }
