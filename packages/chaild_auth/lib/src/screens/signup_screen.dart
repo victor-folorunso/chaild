@@ -42,20 +42,14 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
           password: _password.text,
           name: _name.text.trim(),
         );
-    final user = ref.read(authControllerProvider).user;
-    if (user != null && mounted) widget.onAuthenticated(user);
   }
 
   Future<void> _signInApple() async {
     await ref.read(authControllerProvider.notifier).signInWithApple();
-    final user = ref.read(authControllerProvider).user;
-    if (user != null && mounted) widget.onAuthenticated(user);
   }
 
   Future<void> _signInGoogle() async {
     await ref.read(authControllerProvider.notifier).signInWithGoogle();
-    final user = ref.read(authControllerProvider).user;
-    if (user != null && mounted) widget.onAuthenticated(user);
   }
 
   @override
