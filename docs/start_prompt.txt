@@ -108,7 +108,7 @@ supabase_diary/functions/
   process-payout/index.ts                  <- EXISTS, references payout-webhook (missing)
 
 supabase_diary/patches/
-  001_initial_schema.sql through 004_payouts.sql <- ALL EXIST
+  001_initial_schema.sql through 009_rename_transfer_reference.sql <- ALL EXIST
 
 lib/main.dart                              <- test runner, hardcoded RC key (needs dart-define)
 
@@ -201,6 +201,205 @@ EDGE FUNCTIONS (write then deploy via Supabase CLI):
 
 
 ==============================
+BUG FIX SESSION (All sections complete — fix audit bugs before production)
+==============================
+
+All roadmap sections 2–10 are committed. The next task is to fix the bugs
+found during the post-implementation audit. Work through them in priority
+order below. Each fix gets its own commit prefixed "Fix: ...".
+
+SQL PATCH RULE (non-negotiable):
+  NEVER modify an existing SQL patch file.
+  If a bug requires a schema change, CREATE A NEW PATCH with the next
+  available number (e.g. if 009 exists, create 010_fix_description.sql).
+  The user runs patches incrementally in Supabase SQL Editor. Editing an
+  already-run patch would have no effect and break the audit trail.
+
+DELETE ACCOUNT SAFETY RULE:
+  deleteAccount() calls the existing rpc('delete_user') which runs with
+  SECURITY DEFINER and deletes the auth.users row. Supabase cascades this
+  to all tables with user_id foreign keys. This is safe for the Chaild
+  platform — it removes the user's data cleanly.
+  The concern is partner-side: if a partner calls ChaildAuth.initialize()
+  and exposes account_screen.dart, end users of THAT partner app can delete
+  their Chaild account (which is their account across ALL partner apps).
+  This is intentional product behaviour — it is a shared account SDK.
+  Do NOT add extra guards or confirmation flows beyond what already exists
+  in account_screen.dart unless explicitly instructed.
+
+----------------------------------------------------------------------
+🔴 PRIORITY 1 — COMPILE ERRORS (fix first, app won't build without these)
+----------------------------------------------------------------------
+
+FIX A: auth_controller.dart — add deleteAccount()
+  account_screen.dart calls:
+    ref.read(authControllerProvider.notifier).deleteAccount()
+  AuthController has no such method. Add it:
+
+    Future<void> deleteAccount() async {
+      await AuthService.instance.deleteAccount();
+      state = const AuthState();
+    }
+
+FIX B: subscription_service.dart — missing import for ChailConstants
+  File uses ChailConstants.planYearly / ChailConstants.planMonthly but
+  does not import chaild_constants.dart. Add:
+    import '../config/chaild_constants.dart';
+
+FIX C: chaild_text_field.dart — add maxLength parameter
+  two_factor_screen.dart passes maxLength: 6 to ChailTextField but the
+  widget has no such field. Add:
+    final int? maxLength;
+  to the constructor and wire it to TextFormField's maxLength property.
+
+----------------------------------------------------------------------
+🟠 PRIORITY 2 — CRASH BUGS (builds but crashes at runtime)
+----------------------------------------------------------------------
+
+FIX D: signup_screen.dart — guard Apple Sign In with Platform.isIOS
+  login_screen.dart already guards the Apple button correctly.
+  signup_screen.dart renders it unconditionally — crashes on Android.
+  Add the same: if (Platform.isIOS) wrapping the Apple button.
+
+----------------------------------------------------------------------
+🟡 PRIORITY 3 — SERIOUS RUNTIME BUGS
+----------------------------------------------------------------------
+
+FIX E: auth_service.dart + usage_tracking_service.dart — functions.invoke body
+  In supabase_flutter v2, body: is serialized internally. Passing a
+  pre-encoded JSON string causes double-encoding. Fix both files:
+
+  auth_service.dart:
+    // WRONG:  body: jsonEncode({'partnerKey': partnerKey, 'bundleId': bundleId})
+    // RIGHT:  body: {'partnerKey': partnerKey, 'bundleId': bundleId}
+
+  usage_tracking_service.dart:
+    // WRONG:  body: '{"partnerKey":"$partnerKey","secondsUsed":$seconds}'
+    // RIGHT:  body: {'partnerKey': partnerKey, 'secondsUsed': seconds}
+
+FIX F: subscription_screen.dart — catch PurchasesError not PurchasesErrorCode
+  PurchasesErrorCode is an enum value, not an exception class. The catch
+  block never fires. Fix:
+    // WRONG:  } on PurchasesErrorCode catch (e) {
+    //           if (e == PurchasesErrorCode.purchaseCancelledError)
+    // RIGHT:   } on PurchasesError catch (e) {
+    //           if (e.code == PurchasesErrorCode.purchaseCancelledError)
+
+FIX G: distribute-revenue/index.ts — wrong column names
+  Queries reference columns that do not exist:
+    'amount_usd'  -> correct column is 'amount_ngn'
+    'renewed_at'  -> correct column is 'starts_at' (or 'updated_at')
+  Fix both .select() and .gte()/.lt() calls.
+
+FIX H: Schema conflict between patch 003 and patch 008 — partner_earnings table
+  patch 003 creates partner_earnings with columns:
+    gross_amount_ngn, share_pct, earned_ngn, subscription_id
+  patch 008 also does CREATE TABLE IF NOT EXISTS partner_earnings with
+  completely different columns: month, amount_usd
+  Because the table already exists, patch 008's CREATE is silently skipped.
+  The unique index on (partner_key, user_id, month) then fails because
+  'month' was never added.
+
+  FIX: Create a NEW patch (010_fix_partner_earnings.sql) that uses
+  ALTER TABLE partner_earnings ADD COLUMN IF NOT EXISTS for each missing
+  column (month, amount_usd). Also recreate the unique index with
+  CREATE UNIQUE INDEX IF NOT EXISTS. Do NOT modify patch 008.
+
+FIX I: process-payout/index.ts — USD/NGN currency mismatch
+  distribute-revenue accumulates earnings as USD in partners.total_earned,
+  but process-payout sends amount: unpaid with currency: "NGN" to
+  Flutterwave. A $15 payout would be sent as ₦15.
+  Fix: convert total_earned (USD) to NGN before sending to Flutterwave,
+  or store all earnings in NGN consistently. Decide one approach and apply
+  it across both distribute-revenue and process-payout.
+
+FIX J: payment_service.dart — upsert on user_id with no plain unique index
+  onConflict: 'user_id' requires a full (non-partial) unique index on that
+  column. The existing index is partial (WHERE status = 'active') so
+  Postgres ignores it and always inserts, creating duplicate rows.
+  Fix: Create a NEW patch (011_subscriptions_unique_user.sql) that adds:
+    CREATE UNIQUE INDEX IF NOT EXISTS subscriptions_user_id_idx
+      ON subscriptions(user_id);
+  Do NOT modify patch 002.
+
+----------------------------------------------------------------------
+🔵 PRIORITY 4 — LOGIC / DESIGN BUGS
+----------------------------------------------------------------------
+
+FIX K: 007_bundle_id_enforcement.sql — UNIQUE constraint too narrow
+  partner_apps has UNIQUE on partner_key alone, but a partner can have
+  multiple bundle IDs (multiple apps). This prevents that.
+  Fix: Create a NEW patch (012_fix_partner_apps_unique.sql) that drops
+  the old constraint and adds UNIQUE(partner_key, bundle_id).
+  Do NOT modify patch 007.
+
+FIX L: chaild_guard.dart — ID verification never checks DB column
+  When ChaildAuth.requiresIdVerification is true, all users are blocked
+  regardless of their actual id_verified status in the profiles table.
+  Fix: query profiles for id_verified before blocking:
+    final profile = await AuthService.instance.getProfile(userId);
+    if (!profile.idVerified) { /* show placeholder */ }
+  Also ensure ChaildUser.fromMap maps the 'id_verified' column to
+  an idVerified field if it does not already.
+
+FIX M: login_screen.dart + siblings — double onAuthenticated callback
+  On successful sign-in, onAuthenticated fires twice:
+    1. _AuthFlowRoot ref.listen detects user change -> calls onAuthenticated
+    2. LoginScreen._signIn() directly calls widget.onAuthenticated(user)
+  Same double-fire in _signInApple and _signInGoogle.
+  This causes double navigator pushes if the callback does navigation.
+  Fix: remove the direct widget.onAuthenticated calls from LoginScreen
+  (_signIn, _signInApple, _signInGoogle). The ref.listen in _AuthFlowRoot
+  is the single source of truth.
+
+FIX N: ios/Runner/Info.plist — missing Google Sign In URL scheme
+  The reversed client ID URL scheme (com.googleusercontent.apps.XXXXXXX)
+  must be added to CFBundleURLTypes in Info.plist for iOS to redirect back
+  from the Google OAuth browser. The chaild:// scheme is already registered
+  correctly. Add a second CFBundleURLTypes entry for the Google scheme.
+  (Placeholder value — the real reversed client ID comes from
+  GoogleService-Info.plist once the partner adds it.)
+
+----------------------------------------------------------------------
+⚪ PRIORITY 5 — MINOR / DEPRECATIONS
+----------------------------------------------------------------------
+
+FIX O: chaild_app_lock.dart — deprecated colorScheme.background
+  Replace:  Theme.of(context).colorScheme.background
+  With:     Theme.of(context).colorScheme.surface
+
+FIX P: flutterwave-webhook/index.ts — unused import
+  Remove: import { createHmac } from "https://deno.land/std@0.177.0/node/crypto.ts";
+  It is never used (signature check is plain string comparison).
+
+FIX Q: usage_tracking_service.dart — unsafe string interpolation in body
+  After applying Fix E (Map body), also ensure the body always uses
+  jsonEncode({...}) rather than string interpolation. A partnerKey
+  containing quotes or backslashes would break string-interpolated JSON.
+
+----------------------------------------------------------------------
+COMMIT ORDER FOR BUG FIXES
+----------------------------------------------------------------------
+
+Commit each fix (or small group of related fixes) separately:
+  "Fix: add deleteAccount to AuthController (Fix A)"
+  "Fix: subscription_service missing ChailConstants import (Fix B)"
+  "Fix: ChailTextField maxLength param (Fix C)"
+  "Fix: Apple Sign In Android guard in signup_screen (Fix D)"
+  "Fix: functions.invoke body Map not string (Fix E)"
+  "Fix: PurchasesError catch in subscription_screen (Fix F)"
+  "Fix: distribute-revenue wrong column names (Fix G)"
+  "Fix: 010_fix_partner_earnings — add month/amount_usd columns (Fix H)"
+  "Fix: process-payout USD/NGN currency mismatch (Fix I)"
+  "Fix: 011_subscriptions_unique_user — plain unique index (Fix J)"
+  "Fix: 012_fix_partner_apps_unique — unique(partner_key, bundle_id) (Fix K)"
+  "Fix: chaild_guard id_verified DB check (Fix L)"
+  "Fix: remove double onAuthenticated callback (Fix M)"
+  "Fix: iOS Info.plist Google Sign In URL scheme placeholder (Fix N)"
+  "Fix: colorScheme.surface deprecation + unused import + body safety (Fix O/P/Q)"
+
+
+==============================
 HOW TO WORK: THE EDIT LOOP
 ==============================
 
@@ -236,11 +435,11 @@ AFTER completing a task (one logical unit of work):
 
   3. When the diff stat is clean and correct, commit:
      git -C "C:\Users\victo\Documents\SandBox\chaild" add -A
-     git -C "C:\Users\victo\Documents\SandBox\chaild" commit -m "Section X.Y: brief description"
+     git -C "C:\Users\victo\Documents\SandBox\chaild" commit -m "Fix: brief description"
 
-     Use the section number from ROADMAP.md as the commit message prefix.
-     Example: "Section 2.3: add 005_rpc_delete_user.sql patch"
-     Example: "Section 5.1: scaffold chaild_storage package"
+     Use "Fix: ..." as the commit message prefix for bug fix commits.
+     Use section number prefixes for roadmap work, e.g.:
+       "Section 2.3: add 005_rpc_delete_user.sql patch"
 
   4. Move to the next task. The commit is the checkpoint. If this session
      ends before the next commit, the next session will find it via
@@ -301,4 +500,5 @@ DONE WHEN
 ==============================
 
 All conditions in the "Definition of Production Ready" section of ROADMAP.md
-are met. That checklist is the final authority, not this file.
+are met AND all bug fixes A through Q above are committed. Both checklists
+must be satisfied — not just one.
