@@ -36,9 +36,9 @@ serve(async (req: Request) => {
     // ── Load subscriptions that renewed in the target month ──────────────────
     const { data: subscriptions, error: subErr } = await db
       .from('subscriptions')
-      .select('user_id, amount_usd')
-      .gte('renewed_at', `${month}-01`)
-      .lt('renewed_at', nextMonthStart(month));
+      .select('user_id, amount_ngn')
+      .gte('starts_at', `${month}-01`)
+      .lt('starts_at', nextMonthStart(month));
 
     if (subErr) return error(500, subErr.message);
     if (!subscriptions || subscriptions.length === 0) {
@@ -48,7 +48,7 @@ serve(async (req: Request) => {
     let processed = 0;
 
     for (const sub of subscriptions) {
-      const { user_id, amount_usd } = sub;
+      const { user_id, amount_ngn } = sub;
 
       // ── Get all usage rows for this user in this month ──────────────────────
       const { data: usageRows } = await db
@@ -64,7 +64,7 @@ serve(async (req: Request) => {
       );
       if (totalWeighted === 0) continue;
 
-      const partnerPool = amount_usd * PARTNER_SHARE;
+      const partnerPool = amount_ngn * PARTNER_SHARE;
 
       for (const row of usageRows) {
         const share = (row.weighted_seconds / totalWeighted) * partnerPool;
